@@ -1,0 +1,10 @@
+{
+  "editor.fontFamily": "Fira Code",
+  "editor.fontLigatures": true,
+  "files.associations": {
+    "chrono": "cpp",
+    "complex": "c",
+    "ostream": "cpp",
+    "iostream": "cpp"
+  }
+}
