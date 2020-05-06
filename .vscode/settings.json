@@ -6,5 +6,8 @@
     "complex": "c",
     "ostream": "cpp",
     "iostream": "cpp"
-  }
+  },
+  "cSpell.words": [
+    "outtextxy"
+  ]
 }
