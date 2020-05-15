@@ -7,7 +7,6 @@
 #include <string.h>
 #include "graphics.h"
 #include "sys_edit.h"
-
 using namespace std;
 
 #define WINDOW 600
@@ -30,7 +29,8 @@ const int square = 800;
 const int life = 80;
 int cell[80][80] = {0};
 const int buffsize = 100;
-
+const int commandCnt = 4;
+char *commandTest[4] = {"build", "quarantine", "work", "exit"};
 default_random_engine e;
 
 typedef struct
@@ -46,16 +46,10 @@ typedef struct
     void (*Move)(int *);
 } Person;
 
-typedef struct
-{
-    int bedCnt;
-} Hospital;
-
 Person pool[1000];
 
 void InitHospital(int cnt)
 {
-    Hospital hospital = {cnt};
     bed += cnt;
 }
 
@@ -434,14 +428,60 @@ void PrintText()
     outtextxy(610, 110, outputBed);
 }
 
+int Min(int a, int b)
+{
+    return a < b ? a : b;
+}
+
+char *EditDistance(char *input)
+{
+    int dp[15][15];
+    int flag = 0, now = 0xff, i, j, k;
+
+    char *re;
+
+    for (k = 0; k < commandCnt; k++)
+    {
+        char *target = commandTest[k];
+        char in[15] = {'\0'}, command[15] = {'\0'};
+        in[0] = '0', command[0] = '0';
+        strcat(in, input);
+        strcat(command, target);
+        int m = strlen(in);
+        int n = strlen(command);
+
+        for (i = 0; i < m; i++)
+        {
+            dp[i][0] = i;
+        }
+
+        for (i = 0; i < n; i++)
+        {
+            dp[0][i] = i;
+        }
+
+        for (i = 1; i < m; i++)
+        {
+            for (j = 1; j < n; j++)
+            {
+                flag = 1 - (in[i] == command[j]);
+                dp[i][j] = Min(dp[i - 1][j] + 1, Min(dp[i][j - 1] + 1, dp[i - 1][j - 1] + flag));
+            }
+        }
+
+        if (dp[m - 1][n - 1] <= now)
+        {
+            re = target;
+            now = dp[m - 1][n - 1];
+        }
+    }
+    return re;
+}
+
 void FinalDisplay()
 {
     Sleep(1000);
     cleardevice();
-    /* char ptr[5], outputRate[20] = "Death Rate: ";
-    double rate = (double)dead / population;
-    gcvt(rate, 2, ptr);
-    strcat(outputRate, ptr); */
     setcolor(WHITE);
     outtextxy(400, 300, "OVER");
 }
@@ -494,13 +534,13 @@ void Text(char *s, int len)
     s[len - 2] = '\0';
 }
 
-void ConsoleInput()
+void Console()
 {
     sys_edit box;
     box.create(true); //multiple line
     /* edit box parameter */
     box.move(610, 130);    //position
-    box.size(160, 80);     //size
+    box.size(160, 100);    //size
     box.setbgcolor(BLACK); //background color
     box.setcolor(WHITE);   //text color
     box.setfont(16, 0, "Fira Code");
@@ -519,23 +559,45 @@ void ConsoleInput()
                 box.gettext(buffsize, buff); //获取输入框内容，保存在buff中
                 buffLength = strlen(buff);
                 Text(buff, buffLength);
+
                 if (buffLength)
                 {
                     if (!strcmp(buff, "exit"))
                     {
+                        Sleep(500);
                         break;
+                    }
+                    else if (!strcmp(buff, "build"))
+                    {
+                        Sleep(1500);
+                        box.settext("Input the number of hospital beds: ");
+                        Sleep(1500);
+                        box.settext("Hospital construction successful.");
+                    }
+                    else if (!strcmp(buff, "quarantine"))
+                    {
+                        Sleep(1500);
+                        box.settext("React");
+                    }
+                    else if (!strcmp(buff, "work"))
+                    {
+                        Sleep(1500);
+                        box.settext("Back to work");
                     }
                     else
                     {
-                        if (!strcmp(buff, "build"))
-                        {
-                            InitHospital(100);
-                        }
-                        Sleep(500);
-                        box.settext("");
+                        char *tmp = EditDistance(buff);
+                        char warning[50] = "Ambiguous command. Do you mean ";
+                        strcat(warning, tmp);
+                        strcat(warning, "?");
+                        Sleep(300);
+                        box.settext(warning);
                     }
+                    Sleep(1500);
+                    box.settext("");
                 }
             }
+
             flagPress = 1;
         }
         else
@@ -547,6 +609,7 @@ void ConsoleInput()
 
 int main()
 {
+    int c;
     initgraph(800, 800, 0); // initialize 800 * 800 window
     setrendermode(RENDER_MANUAL);
     /* GameOfLife();
@@ -558,7 +621,12 @@ int main()
 
     while (Over())
     {
-        //ConsoleInput();
+        if (kbhit())
+        {
+            c = getch();
+            Console();
+            flushkey();
+        }
         day++;
         NewDay();
         Contact();

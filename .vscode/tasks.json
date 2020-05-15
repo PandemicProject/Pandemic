@@ -18,7 +18,6 @@
         "-lole32",
         "-loleaut32",
         "-lwinmm",
-        "-luuid",
         "-mwindows",
         "-LD:\\files\\mingw\\lib",
         "-o",
