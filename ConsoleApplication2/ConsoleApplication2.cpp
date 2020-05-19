@@ -24,7 +24,9 @@ int population = 1000;
 double deathRate = 0.05; //死亡率 PARAMETER
 double broadRate = 0.8;  // infected by whether people wear mask PARAMETER
 int threshold = 5; //PARAMETER
-int money = 1000000; //PARAMETER
+int money = 100000;//PARAMETER
+int moneyPerPerson = 2; //PARAMETER
+int costPerBedPerDay = 10; //PARAMETER
 
 Person pool[2000];
 

@@ -5,14 +5,7 @@
 #include "graph.h"
 #include "person.h"
 using namespace std;
-extern int day;
-extern int healthy;
-extern int exposed;
-extern int infected;
-extern int dead;
-extern int bedTotal;
-extern int bedConsumption;
-extern int population;
+extern int day, healthy, exposed, infected, dead, bedTotal, bedConsumption, population, money;
 extern Person pool[2000];
 
 void Draw()
@@ -64,12 +57,14 @@ void PrintText()
 	char numberOfInfected[10] = { '\0' };
 	char numberOfDead[10] = { '\0' };
 	char numberOfBed[10] = { '\0' };
+	char moneyLeft[10] = { '\0' };
 	char outputTotalDay[35] = "Day ";
 	char outputHealthy[20] = "# Healthy: ";
 	char outputExposed[20] = "# Exposed: ";
 	char outputInfected[20] = "# Infected: ";
 	char outputDead[20] = "# Dead: ";
 	char outputBed[30] = "# Hospital Bed: ";
+	char outputMoney[30] = "# Money Left: ";
 
 	_itoa(day, daystr, 10);
 	_itoa(healthy, numberOfHealthy, 10);
@@ -77,6 +72,7 @@ void PrintText()
 	_itoa(infected, numberOfInfected, 10);
 	_itoa(dead, numberOfDead, 10);
 	_itoa(bedTotal - bedConsumption, numberOfBed, 10);
+	_itoa(money, moneyLeft, 10);
 
 	strcat(outputTotalDay, daystr);
 	strcat(outputHealthy, numberOfHealthy);
@@ -84,14 +80,17 @@ void PrintText()
 	strcat(outputInfected, numberOfInfected);
 	strcat(outputDead, numberOfDead);
 	strcat(outputBed, numberOfBed);
+	strcat(outputMoney, moneyLeft);
 
 	setcolor(WHITE);
+	setbkcolor(TRANSPARENT);
 	outtextxy(610, 10, outputTotalDay);
 	outtextxy(610, 30, outputHealthy);
 	outtextxy(610, 50, outputExposed);
 	outtextxy(610, 70, outputInfected);
 	outtextxy(610, 90, outputDead);
 	outtextxy(610, 110, outputBed);
+	outtextxy(610, 130, outputMoney);
 }
 
 void FinalDisplay()

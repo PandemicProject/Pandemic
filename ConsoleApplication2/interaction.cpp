@@ -20,7 +20,7 @@ bool quarantineFlag = false;
 bool workFlag = false;
 
 extern double broadRate, moveWill;
-extern int money, costPerBed;
+extern int money, costPerBed, moneyPerPerson;
 
 int Min(int a, int b)
 {
@@ -28,16 +28,15 @@ int Min(int a, int b)
 }
 
 //最小编辑距离，处理用户拼写错误
-char *EditDistance(char *input)
+void EditDistance(char *input, char**re)
 {
 	int dp[15][15];
 	int flag = 0, now = 0xff, i, j, k;
 
-	char *re = (char*)malloc(10);
-
 	for (k = 0; k < commandCnt; k++)
 	{
 		char *target = commandList[k];
+		//insert a 0 at the beginning
 		char in[15] = { '\0' }, command[15] = { '\0' };
 		in[0] = '0', command[0] = '0';
 		strcat(in, input);
@@ -66,11 +65,10 @@ char *EditDistance(char *input)
 
 		if (dp[m - 1][n - 1] <= now)
 		{
-			re = target;
+			*re = target;
 			now = dp[m - 1][n - 1];
 		}
 	}
-	return re;
 }
 
 //handle \n, \t and number
@@ -88,6 +86,10 @@ bool Text(char *s, int &len)
 		{
 			flag = true;
 		}
+		else
+		{
+			flag = false;
+		}
 	}
 	if (flag)
 	{
@@ -99,14 +101,14 @@ bool Text(char *s, int &len)
 	}
 }
 
-//处理输入和输出
+//command
 void Console()
 {
 	sys_edit box;
 	box.create(true); //multiple line
 	/* edit box parameter */
-	box.move(610, 130);    //position
-	box.size(160, 100);    //size
+	box.move(610, 170);    //position
+	box.size(170, 120);    //size
 	box.setbgcolor(BLACK); //background color
 	box.setcolor(WHITE);   //text color
 	box.setfont(16, 0, "Fira Code");
@@ -147,8 +149,8 @@ void Console()
 							if (!quarantineFlag)
 							{
 								StayInQuarantine();
+								quarantineFlag = true;
 								box.settext("Infected people start to be kept in quarantine.");
-								//添加函数
 							}
 							else
 							{
@@ -160,7 +162,7 @@ void Console()
 							Sleep(1500);
 							if (!workFlag)
 							{
-								//添加函数
+								moneyPerPerson *= 2;
 								box.settext("People are getting back to work");
 							}
 							else
@@ -213,13 +215,13 @@ void Console()
 						}
 						else
 						{
-							char *tmp = EditDistance(buff);
+							char *tmp = buff;
+							EditDistance(buff,&tmp);
 							char warning[50] = "Ambiguous command. Do you mean ";
 							strcat(warning, tmp);
 							strcat(warning, "?");
 							Sleep(300);
 							box.settext(warning);
-							free(tmp);
 						}
 					}
 					else

@@ -5,17 +5,12 @@ using namespace std;
 default_random_engine e;
 const int WINDOW = 600;
 extern double moveWill; //should be average + noise
-extern int population;
-extern int healthy;
-extern int exposed;
-extern int infected;
-extern int dead;
-extern double deathRate;
-extern double broadRate;
+extern int population,healthy, exposed, infected, dead;
+extern double deathRate, broadRate;
 extern int threshold;
 extern int hospitalResponse;
-extern int bedTotal;
-extern int bedConsumption;
+extern int bedTotal, bedConsumption;
+extern int money, moneyPerPerson, costPerBedPerDay;
 extern Person pool[2000];
 
 bool Check(int x, int y)
@@ -251,8 +246,21 @@ void UpdateDeathAndRecovery(Person *person)
 
 void HospitalReception(Person *p)
 {
+	int flag;
+	uniform_int_distribution<int> state(0, 9);
 	if (p->infectedDayCnt >= hospitalResponse && bedConsumption < bedTotal && p->quarantine == 0)
 	{
+		flag = state(e);
+		if (flag < 2) //ÖØÖ¢
+		{
+			p->outOfHospitalThreshold = 25;
+			p->deathRate *= 2; //PARAMETER
+		}
+		else //ÇáÖ¢
+		{
+			p->outOfHospitalThreshold = 14;
+		}
+
 		bedConsumption++;
 		p->quarantine = 1;
 		p->deathRate /= 5; //PARAMETER
@@ -283,6 +291,8 @@ void NewDay()
 			}
 		}
 	}
+	money += (healthy + exposed) * moneyPerPerson;
+	money -= bedTotal * costPerBedPerDay;
 }
 
 void StayInQuarantine()
