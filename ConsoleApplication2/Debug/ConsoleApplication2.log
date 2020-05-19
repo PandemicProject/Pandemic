@@ -1,5 +1,2 @@
-﻿  interaction.cpp
-  person.cpp
-c:\users\geyir\source\repos\consoleapplication2\consoleapplication2\person.cpp(115): warning C4101: “distance”: 未引用的局部变量
-  正在生成代码...
+﻿  graph.cpp
   ConsoleApplication2.vcxproj -> C:\Users\geyir\source\repos\ConsoleApplication2\Debug\ConsoleApplication2.exe

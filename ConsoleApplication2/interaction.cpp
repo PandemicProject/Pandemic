@@ -78,27 +78,20 @@ bool Text(char *s, int &len)
 	s[len - 2] = '\0';
 	len -= 2;
 	int i;
-	bool flag = false;
+	bool flag = true;
 	//ÅÐ¶ÏÊÇ·ñÎªÊý×Ö
 	for (i = 0; i < len; i++)
 	{
-		if (isdigit(s[i]))
-		{
-			flag = true;
-		}
-		else
+		if (!isdigit(s[i]))
 		{
 			flag = false;
 		}
+		else
+		{
+			continue;
+		}
 	}
-	if (flag)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+	return flag;
 }
 
 //command
@@ -228,12 +221,7 @@ void Console()
 					{
 						Sleep(1500);
 						int num = atoi(buff);
-						bool hospitalFlag = true;
-
-						if (num * costPerBed > money)
-						{
-							hospitalFlag = false;
-						}
+						bool hospitalFlag = num * costPerBed > money ? false : true;
 
 						if (hospitalFlag)
 						{
