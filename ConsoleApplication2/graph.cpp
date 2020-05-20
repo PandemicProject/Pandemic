@@ -5,7 +5,7 @@
 #include "graph.h"
 #include "person.h"
 using namespace std;
-extern int day, healthy, exposed, infected, dead, bedTotal, bedConsumption, population, money;
+extern int day, healthy, exposed, infected, dead, bedTotal, bedConsumption, money, mask, population;
 extern Person pool[2000];
 
 void Draw()
@@ -13,6 +13,7 @@ void Draw()
 	cleardevice();
 	PrintPerson();
 	DrawHospital();
+	DrawQuarantineZone();
 	PrintText();
 }
 
@@ -41,11 +42,9 @@ void PrintPerson()
 			break;
 
 		case 3:
-			setfillcolor(TRANSPARENT);
-			setcolor(TRANSPARENT);
 			break;
 		}
-		fillellipse(*(person.position), *(person.position + 1), 2, 2);
+		fillellipse(person.position[0], person.position[1], 2, 2);
 	}
 }
 
@@ -58,6 +57,7 @@ void PrintText()
 	char numberOfDead[10] = { '\0' };
 	char numberOfBed[10] = { '\0' };
 	char moneyLeft[10] = { '\0' };
+	char maskLeft[10] = { '\0' };
 	char outputTotalDay[35] = "Day ";
 	char outputHealthy[20] = "# Healthy: ";
 	char outputExposed[20] = "# Exposed: ";
@@ -65,6 +65,7 @@ void PrintText()
 	char outputDead[20] = "# Dead: ";
 	char outputBed[30] = "# Hospital Bed: ";
 	char outputMoney[30] = "# Money Left: ";
+	char outputMask[30] = "# Mask Left: ";
 
 	_itoa(day, daystr, 10);
 	_itoa(healthy, numberOfHealthy, 10);
@@ -73,6 +74,7 @@ void PrintText()
 	_itoa(dead, numberOfDead, 10);
 	_itoa(bedTotal - bedConsumption, numberOfBed, 10);
 	_itoa(money, moneyLeft, 10);
+	_itoa(mask, maskLeft, 10);
 
 	strcat(outputTotalDay, daystr);
 	strcat(outputHealthy, numberOfHealthy);
@@ -81,6 +83,7 @@ void PrintText()
 	strcat(outputDead, numberOfDead);
 	strcat(outputBed, numberOfBed);
 	strcat(outputMoney, moneyLeft);
+	strcat(outputMask, maskLeft);
 
 	setcolor(WHITE);
 	setbkcolor(TRANSPARENT);
@@ -91,6 +94,7 @@ void PrintText()
 	outtextxy(610, 90, outputDead);
 	outtextxy(610, 110, outputBed);
 	outtextxy(610, 130, outputMoney);
+	outtextxy(610, 150, outputMask);
 }
 
 void FinalDisplay()
@@ -104,8 +108,9 @@ void FinalDisplay()
 	strcat(output, tmp);
 	strcat(output, _tmp);
 	setcolor(WHITE);
-	outtextxy(400, 300, "OVER");
-	outtextxy(400, 320, output);
+	outtextxy(370, 300, "OVER");
+	outtextxy(370, 320, output);
+	outtextxy(370, 340, "Press any key to continue.");
 }
 
 void DrawHospital()
@@ -124,4 +129,10 @@ void DrawHospital()
 		length = lround(600 * ratio);
 	}
 	bar(0, 610, length, 630);
+}
+
+void DrawQuarantineZone()
+{
+	setcolor(WHITE);
+	rectangle(0, 640, 600, 700);
 }

@@ -4,7 +4,7 @@
 void EditDistance(char *, char **);
 int Min(int, int);
 bool Text(char *, int&);
-void Console();
+int Console(); //new game: return 1, exit game: return 0, 2: nothing happens
 
 #endif
 

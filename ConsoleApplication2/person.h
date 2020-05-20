@@ -13,12 +13,13 @@ typedef struct
 	int hospitalReceptionCnt;    //住院时长
 	int outOfHospitalThreshold; //出院
 	int quarantine;              //1 in quarantine, 0: not in quarantine
+	int inHospital;//1 in hospital, 0 not in hospital
 	int recoverThreshold;
-	void(*Move)(int *);
+	void(*Move)(int *, int);
 } Person;
 
 bool Check(int x, int y);
-void _Move(int *arr);
+void _Move(int *arr, int flag);
 void InitPerson();
 void Contact();
 void StayInQuarantine();

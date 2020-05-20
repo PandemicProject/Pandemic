@@ -6,5 +6,6 @@ void PrintPerson();
 void FinalDisplay();
 void PrintText();
 void DrawHospital();
+void DrawQuarantineZone();
 
 #endif

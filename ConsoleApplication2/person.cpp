@@ -3,38 +3,55 @@
 #include <graphics.h>
 using namespace std;
 default_random_engine e;
+
+//position in quarantine zone
+uniform_int_distribution<int> xPos(0, 600);
+uniform_int_distribution<int> yPos(640, 680);
+
+//degree of cooperation (stay in quarantine)
+uniform_int_distribution<int> cooperation(0, 9);
+
+//die or recover
+uniform_int_distribution<int> state(0, 9);
+
+//move
+uniform_int_distribution<int> step(-20, 20);
+
+//init
+normal_distribution<double> normal(300, 100);
+uniform_int_distribution<int> cond(0, 1999);
+uniform_int_distribution<int> lurkDay(2, 14);
+
 const int WINDOW = 600;
 extern double moveWill; //should be average + noise
-extern int population,healthy, exposed, infected, dead;
+extern int healthy, exposed, infected, dead, population;
 extern double deathRate, broadRate;
 extern int threshold;
-extern int hospitalResponse;
-extern int bedTotal, bedConsumption;
+extern int hospitalResponse, bedTotal, bedConsumption;
 extern int money, moneyPerPerson, costPerBedPerDay;
+extern int mask, medicalStuff, maskConsumptionMedical, maskConsumptionOrdinary;
 extern Person pool[2000];
 
+//判断坐标是否超出边界
 bool Check(int x, int y)
 {
-	if (x > (WINDOW - 5) || y > (WINDOW - 5))
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
+	return (x > (WINDOW - 5) || y > (WINDOW - 5));
 }
 
-void _Move(int *arr)
+void _Move(int *arr, int flag)
 {
-	uniform_int_distribution<int> uniform(-20, 20);
-	int dx = 0, dy = 0;
-
+	//判断是否死亡或隔离
+	if (flag)
+	{
+		return;
+	}
+	int dx, dy;
+	
 	do
 	{
-		dx = lround(uniform(e) * moveWill);
-		dy = lround(uniform(e) * moveWill);
-	} while (!Check(*arr + dx, *(arr + 1) + dy));
+		dx = lround(step(e) * moveWill);
+		dy = lround(step(e) * moveWill);
+	} while (Check(*arr + dx, *(arr + 1) + dy));
 
 	*arr += dx;
 	*(arr + 1) += dy;
@@ -51,31 +68,28 @@ void _Move(int *arr)
 
 void InitPerson()
 {
-	normal_distribution<double> normal(300, 100);
-	uniform_int_distribution<int> uniform(0, population - 1);
-	uniform_int_distribution<int> lurkDay(2, 14);
 	int _x, _y;
 
-	for (int i = 0; i < 2000;i++)
+	for (int i = 0; i < 2000; i++)
 	{
 		//initialize people's position
 		do
 		{
 			_x = lround(normal(e));
 			_y = lround(normal(e));
-		} while (!Check(_x, _y));
+		} while (Check(_x, _y));
 
 		if (_x > WINDOW)
 		{
-			_x = WINDOW;
+			_x = WINDOW - 5;
 		}
 
 		if (_y > WINDOW)
 		{
-			_y = WINDOW;
+			_y = WINDOW - 5;
 		}
 
-		Person p = { {_x, _y}, 0, 0.05, 0, lurkDay(e), 0, 0, 10, 0, 7, _Move };
+		Person p = { {_x, _y}, 0, 0.05, 0, lurkDay(e), 0, 0, 0, 0, 0, 10, _Move };
 		pool[i] = p;
 	}
 
@@ -84,7 +98,7 @@ void InitPerson()
 	initCount = infected;
 	while (initCount--)
 	{
-		int index = uniform(e);
+		int index = cond(e);
 		if (pool[index].condition != 2)
 		{
 			pool[index].condition = 2;
@@ -98,7 +112,7 @@ void InitPerson()
 	initCount = exposed;
 	while (initCount--)
 	{
-		int index = uniform(e);
+		int index = cond(e);
 		if (pool[index].condition != 2 && pool[index].condition != 1)
 		{
 			pool[index].condition = 1;
@@ -110,6 +124,8 @@ void InitPerson()
 	}
 }
 
+/*change the condition to "exposed" 
+if a healthy person physically contacts an exposed or an infected person closely*/
 void Contact()
 {
 	double distance;
@@ -125,7 +141,7 @@ void Contact()
 		}
 		for (j = i + 1; j < population; j++)
 		{
-			double distance = sqrt(pow((pool[i].position[0] - pool[j].position[0]), 2) + pow((pool[i].position[1] - pool[j].position[1]), 2)); //distance between two people
+			distance = sqrt(pow((pool[i].position[0] - pool[j].position[0]), 2) + pow((pool[i].position[1] - pool[j].position[1]), 2)); //distance between two people
 			if (distance <= threshold)
 			{
 				if (pool[i].condition == 0)
@@ -160,6 +176,7 @@ void Contact()
 	return;
 }
 
+//from exposed to infected
 void UpdateLurk(Person *person)
 {
 	person->lurkDayCnt++;
@@ -173,6 +190,7 @@ void UpdateLurk(Person *person)
 	}
 }
 
+//some people recover and are discharged from the hospital
 void UpdateInHospital(Person *person)
 {
 	if (person->condition == 3)
@@ -181,7 +199,7 @@ void UpdateInHospital(Person *person)
 	}
 	else
 	{
-		if (person->quarantine)
+		if (person->inHospital)
 		{
 			person->hospitalReceptionCnt++;
 			if (person->hospitalReceptionCnt >= person->outOfHospitalThreshold) //康复出院
@@ -189,6 +207,7 @@ void UpdateInHospital(Person *person)
 				bedConsumption--;
 				person->quarantine = 0;
 				person->condition = 0;
+				person->inHospital = 0;
 			}
 		}
 	}
@@ -199,12 +218,13 @@ void UpdateInfected(Person *person)
 	person->infectedDayCnt++;
 }
 
+//of all infected people
 void UpdateDeathAndRecovery(Person *person)
 {
 	int flag;
 	uniform_int_distribution<int> uniform(0, 999);
 	flag = uniform(e);
-	if (!person->quarantine)
+	if (!person->inHospital)
 	{
 		if (person->infectedDayCnt >= person->recoverThreshold)
 		{
@@ -219,6 +239,12 @@ void UpdateDeathAndRecovery(Person *person)
 				person->condition = 0;
 				healthy++;
 				infected--;
+
+				//康复后不再隔离
+				if (person->quarantine)
+				{
+					person->quarantine = 0; 
+				}
 			}
 		}
 	}
@@ -244,11 +270,12 @@ void UpdateDeathAndRecovery(Person *person)
 	}
 }
 
+//infected people are recepted into the hospital
 void HospitalReception(Person *p)
 {
 	int flag;
-	uniform_int_distribution<int> state(0, 9);
-	if (p->infectedDayCnt >= hospitalResponse && bedConsumption < bedTotal && p->quarantine == 0)
+	
+	if (p->infectedDayCnt >= hospitalResponse && bedConsumption < bedTotal && !p->inHospital) //入院条件
 	{
 		flag = state(e);
 		if (flag < 2) //重症
@@ -263,10 +290,12 @@ void HospitalReception(Person *p)
 
 		bedConsumption++;
 		p->quarantine = 1;
+		p->inHospital = 1;
 		p->deathRate /= 5; //PARAMETER
 	}
 }
 
+//update condition for a new day
 void NewDay()
 {
 	for (auto &person : pool)
@@ -278,38 +307,52 @@ void NewDay()
 		}
 		else
 		{
-			person.Move(person.position);
-			if (tmp == 1) //潜伏期
+			int flag = person.condition == 3 || person.quarantine == 1;
+			person.Move(person.position, flag);
+			if (tmp == 1)
 			{
 				UpdateLurk(&person); //更新潜伏情况
 			}
-			else if (tmp == 2) //出现症状
+			else if (tmp == 2)
 			{
 				UpdateInfected(&person);
 				HospitalReception(&person);
 				UpdateDeathAndRecovery(&person);
+				UpdateInHospital(&person);
 			}
 		}
 	}
 	money += (healthy + exposed) * moneyPerPerson;
 	money -= bedTotal * costPerBedPerDay;
+	mask -= medicalStuff * maskConsumptionMedical;
+	mask -= (population - dead) * maskConsumptionOrdinary;
 }
 
 void StayInQuarantine()
 {
-	uniform_int_distribution<int> willingness(0, 9);
 	int flag;
-	for (auto p : pool)
+	for (auto &p : pool)
 	{
-		if (p.condition == 2) 
+		if (p.condition == 2 && !p.inHospital) //infected but not recepted into hospital
 		{
-			flag = willingness(e);
-			//90% of infected people stay in quarantine
+			flag = cooperation(e);
+			//90% of these people will stay in quarantine under the "quarantine" command
 			//PARAMETER
 			if (flag < 9)
 			{
 				p.quarantine = 1;
 			}
+		}
+
+		//放入隔离区
+		if (!p.quarantine)
+		{
+			return;
+		}
+		else
+		{
+			p.position[0] = xPos(e);
+			p.position[1] = yPos(e);
 		}
 	}
 }

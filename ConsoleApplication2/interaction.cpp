@@ -7,20 +7,18 @@
 #include"higiene.h"
 #include"person.h"
 
-const int commandCnt = 7;
+const int commandCnt = 9;
 char build[] = "build", quarantine[] = "quarantine", work[] = "work", research[] = "research",
-quit[] = "quit", mask[] = "mask", distance[] = "distance";
-char *commandList[7] = { build, quarantine, work, research, quit, mask, distance };
+quit[] = "quit", mask[] = "mask", distance[] = "distance", counterMask[] = "rm mask",
+newgame[] = "new game";
+char *commandList[9] = {build, quarantine, work, research, quit, mask, distance, counterMask, newgame};
 const int buffsize = 100;
 
 //make sure these commands are only executed once
-bool maskFlag = false;
-bool distanceFlag = false;
-bool quarantineFlag = false;
-bool workFlag = false;
+bool maskFlag = false, distanceFlag = false, quarantineFlag = false, workFlag = false, hospitalFlag = false;
 
 extern double broadRate, moveWill;
-extern int money, costPerBed, moneyPerPerson;
+extern int money, costPerBed, moneyPerPerson, maskConsumptionOrdinary;
 
 int Min(int a, int b)
 {
@@ -95,7 +93,7 @@ bool Text(char *s, int &len)
 }
 
 //command
-void Console()
+int Console()
 {
 	sys_edit box;
 	box.create(true); //multiple line
@@ -129,11 +127,12 @@ void Console()
 						if (!strcmp(buff, "quit"))
 						{
 							Sleep(500);
-							break;
+							return 2;
 						}
-						else if (!strcmp(buff, "build"))
+						else if (!strcmp(buff, "build")) //build hospital
 						{
 							Sleep(1500);
+							hospitalFlag = true;
 							box.settext("Input the number of hospital beds: ");
 						}
 						else if (!strcmp(buff, "quarantine"))
@@ -150,12 +149,13 @@ void Console()
 								box.settext("Invalid command. Infected people are already kept in quarantine.");
 							}
 						}
-						else if (!strcmp(buff, "work"))
+						else if (!strcmp(buff, "work")) //back to work
 						{
 							Sleep(1500);
 							if (!workFlag)
 							{
-								moneyPerPerson *= 2;
+								moneyPerPerson *= 2; //PARAMETER
+								moveWill += 0.2; //PARAMETER
 								box.settext("People are getting back to work");
 							}
 							else
@@ -163,13 +163,14 @@ void Console()
 								box.settext("Invalid command. People are already back to work.");
 							}
 						}
-						else if (!strcmp(buff, "mask"))
+						else if (!strcmp(buff, "mask")) //wear mask
 						{
 							Sleep(1500);
 							if (!maskFlag)
 							{
 								maskFlag = true;
 								broadRate /= 2; //PARAMETER
+								maskConsumptionOrdinary = 1;
 								box.settext("People begin to wear masks.");
 							}
 							else
@@ -177,7 +178,22 @@ void Console()
 								box.settext("Invalid command. People are alreay wearing masks.");
 							}
 						}
-						else if (!strcmp(buff, "distance"))
+						else if (!strcmp(buff, "rm mask")) //remove mask
+						{
+							Sleep(1500);
+							if (!maskFlag)
+							{
+								box.settext("People are not wearing masks.");
+							}
+							else
+							{
+								maskFlag = false;
+								broadRate = 2;
+								maskConsumptionOrdinary = 0;
+								box.settext("People stop wearing masks");
+							}
+						}
+						else if (!strcmp(buff, "distance")) //call for social distancing
 						{
 							Sleep(1500);
 							if (!distanceFlag)
@@ -191,20 +207,34 @@ void Console()
 								box.settext("Invalid command. People are already carrying out social distancing.");
 							}
 						}
-						else if (!strcmp(buff, "research"))
+						else if (!strcmp(buff, "research")) //fund research
 						{
 							//not sure if the user can fund research for more than once
 							Sleep(1500);
-							money -= 5000; //PARAMETER
 							if (money > 5000)
 							{
-								money -= 5000;
+								money -= 5000; //PARAMETER
 								box.settext("Research teams are racing to develop medication and vaccine.");
 							}
 							else
 							{
 								box.settext("Research appropriation failed. Not enough money.");
 							}
+						}
+						else if (!strcmp(buff, "new game")) //重新开始游戏
+						{
+							maskFlag = false;
+							distanceFlag = false;
+							quarantineFlag = false;
+							workFlag = false;
+							hospitalFlag = false;
+							box.destory();
+							return 1;
+						}
+						else if (!strcmp(buff, "exit game")) //退出游戏
+						{
+							box.destory();
+							return 0;
 						}
 						else
 						{
@@ -215,22 +245,30 @@ void Console()
 							strcat(warning, "?");
 							Sleep(300);
 							box.settext(warning);
-						}
+						} //spelling mistake
 					}
 					else
 					{
 						Sleep(1500);
-						int num = atoi(buff);
-						bool hospitalFlag = num * costPerBed > money ? false : true;
-
 						if (hospitalFlag)
 						{
-							InitHospital(num);
-							box.settext("Hospital construction successful.");
+							int num = atoi(buff);
+							bool hospitalFlag = num * costPerBed > money ? false : true;
+
+							if (hospitalFlag)
+							{
+								InitHospital(num);
+								box.settext("Hospital construction successful.");
+							}
+							else
+							{
+								box.settext("Hospital Construction failed. Not enough money.");
+							}
+							hospitalFlag = false;
 						}
 						else
 						{
-							box.settext("Hospital Construction failed. Not enough money.");
+							box.settext("Undefined command. Please input \"build\" first if you want to add hospital beds.");
 						}
 					}
 					Sleep(1500);
