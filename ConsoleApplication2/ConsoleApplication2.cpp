@@ -22,7 +22,6 @@ int hospitalResponse = 5; //PARAMETER
 int bedTotal = 50;
 int bedConsumption = 0;
 int costPerBed = 50; //PARAMETER
-double deathRate = 0.05; //死亡率 PARAMETER
 double broadRate = 0.8;  // infected by whether people wear mask PARAMETER
 int threshold = 5; //PARAMETER
 int money = 100000;//PARAMETER
@@ -31,7 +30,7 @@ int costPerBedPerDay = 10; //PARAMETER
 int medicalStuff = 200; //PARAMETER
 int maskConsumptionMedical = 2; //PARAMETER
 int maskConsumptionOrdinary = 0; //PARAMETER
-int maskProduction = 4; //PARAMETER
+int maskProduction = 2; //PARAMETER
 int mask = 10000; //PARAMETER
 int vaccineReverseCnt = 210; //PARAMETER
 int medicineReverseCnt = 120; //PARAMETER
@@ -88,7 +87,7 @@ int main()
 
 bool Over()
 {
-	if ((dead) >= population * 0.5)
+	if (dead >= population * 0.5)
 	{
 		return false;
 	}
@@ -110,7 +109,6 @@ void InitParam()
 	bedTotal = 50;
 	bedConsumption = 0;
 	costPerBed = 30;
-	deathRate = 0.05;
 	broadRate = 0.8;
 	threshold = 5;
 	money = 100000;
@@ -119,7 +117,7 @@ void InitParam()
 	medicalStuff = 200;
 	maskConsumptionMedical = 2;
 	maskConsumptionOrdinary = 0;
-	maskProduction = 4;
+	maskProduction = 2;
 	mask = 10000;
 	quarantineCommandOn = false;
 	quarantine = 0;

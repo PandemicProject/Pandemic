@@ -202,7 +202,7 @@ int Console()
 								{
 									moneyPerPerson /= 2;//PARAMETER
 									moveWill -= 0.2;//PARAMETER
-									maskProduction = 1; //PARAMETER
+									maskProduction = 0; //PARAMETER
 									workFlag = false;
 									box.settext("People stop working.");
 								}
@@ -277,7 +277,8 @@ int Console()
 								distanceFlag = false;
 								quarantineFlag = false;
 								workFlag = false;
-								hospitalFlag = false;
+								hospitalFlag = true;
+								researchFlag = false;
 								box.destory();
 								return 1;
 							}

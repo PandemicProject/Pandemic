@@ -1,7 +1,5 @@
 ﻿  ConsoleApplication2.cpp
-  interaction.cpp
   person.cpp
   正在生成代码...
-c:\users\geyir\source\repos\consoleapplication2\consoleapplication2\interaction.cpp(381): warning C4715: “Console”: 不是所有的控件路径都返回值
-c:\users\geyir\source\repos\consoleapplication2\consoleapplication2\consoleapplication2.cpp(99): warning C4715: “Over”: 不是所有的控件路径都返回值
+c:\users\geyir\source\repos\consoleapplication2\consoleapplication2\consoleapplication2.cpp(98): warning C4715: “Over”: 不是所有的控件路径都返回值
   ConsoleApplication2.vcxproj -> C:\Users\geyir\source\repos\ConsoleApplication2\Debug\ConsoleApplication2.exe

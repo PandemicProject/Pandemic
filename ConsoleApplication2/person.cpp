@@ -24,6 +24,7 @@ uniform_int_distribution<int> lurkDay(2, 14);
 uniform_int_distribution<int> disturbance(-5, 5); //随机扰动
 
 const int WINDOW = 600;
+bool flagLowerRate = false;
 extern double moveWill; //should be average + noise
 extern int day, vaccineReverseCnt, medicineReverseCnt;
 extern int healthy, exposed, infected, dead, population, quarantine;
@@ -181,24 +182,9 @@ void UpdateLurk(Person *person)
 //some people recover and are discharged from the hospital
 void UpdateInHospital(Person *person)
 {
-	if (person->condition == 3)
+	if (person->inHospital)
 	{
-		return;
-	}
-	else
-	{
-		if (person->inHospital)
-		{
-			person->hospitalReceptionCnt++;
-			if (person->hospitalReceptionCnt >= person->outOfHospitalThreshold) //康复出院
-			{
-				bedConsumption--;
-				quarantine--;
-				person->quarantine = 0;
-				person->condition = 0;
-				person->inHospital = 0;
-			}
-		}
+		person->hospitalReceptionCnt++;
 	}
 }
 
@@ -217,15 +203,16 @@ void UpdateDeathAndRecovery(Person *person)
 	{
 		if (person->infectedDayCnt >= person->recoverThreshold)
 		{
-			if (flag < 1000 * person->deathRate)
+			if (flag < 1000 * person->deathRate) //die
 			{
 				person->condition = 3;
 				dead++;
 				infected--;
 			}
-			else
+			else //recover
 			{
 				person->condition = 0;
+				person->infectedDayCnt = 0;
 				healthy++;
 				infected--;
 
@@ -253,6 +240,8 @@ void UpdateDeathAndRecovery(Person *person)
 				person->condition = 0;
 				person->inHospital = 0;
 				person->quarantine = 0;
+				person->infectedDayCnt = 0;
+				person->hospitalReceptionCnt = 0;
 				quarantine--;
 				healthy++;
 				infected--;
@@ -267,7 +256,7 @@ void HospitalReception(Person *p)
 {
 	int flag;
 	
-	if (p->infectedDayCnt >= hospitalResponse && bedConsumption < bedTotal && !p->inHospital) //入院条件
+	if ((p->infectedDayCnt >= hospitalResponse && bedConsumption < bedTotal) && !p->inHospital) //入院条件
 	{
 		flag = state(e);
 		if (flag < 2) //重症
@@ -281,8 +270,11 @@ void HospitalReception(Person *p)
 		}
 
 		bedConsumption++;
-		quarantine++;
-		p->quarantine = 1;
+		if (!p->quarantine) //exclude those who are already kept in quarantine
+		{
+			quarantine++;
+			p->quarantine = 1;
+		}
 		p->inHospital = 1;
 		p->deathRate /= 5; //PARAMETER
 	}
@@ -313,33 +305,43 @@ void NewDay()
 		}
 	}
 
-	int tmp = 0, flag = 0;
+	int tmp = 0;
+	bool flag = false;
+
 	for (auto &person : pool)
 	{
 		tmp = person.condition;
+
 		if (tmp == 3)
 		{
 			continue;
 		}
 		else
 		{
-			person.deathRate /= medicineLock ? 5 : 1;
-			flag = person.condition == 3 || person.quarantine == 1;
+			if (medicineLock && !flagLowerRate)
+			{
+				flagLowerRate = true;
+				person.deathRate /= 5;
+			}
+			flag = person.quarantine == 1;
 			person.Move(person.position, flag);
+
 			if (tmp == 1)
 			{
-				UpdateLurk(&person); //更新潜伏情况
+				UpdateLurk(&person); 
 			}
-			else if (tmp == 2)
+			
+			if (tmp == 2)
 			{
 				UpdateInfected(&person);
+				UpdateInHospital(&person);
 				HospitalReception(&person);
 				Quarantine(quarantineCommandOn, &person);
 				UpdateDeathAndRecovery(&person);
-				//UpdateInHospital(&person);
 			}
 		}
 	}
+
 	money += (population - dead - quarantine) * moneyPerPerson; //隔离的人不带来经济效益
 	money -= bedTotal * costPerBedPerDay;
 	mask -= medicalStuff * maskConsumptionMedical;
