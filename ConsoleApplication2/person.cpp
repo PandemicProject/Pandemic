@@ -6,7 +6,7 @@ default_random_engine e;
 
 //position in quarantine zone
 uniform_int_distribution<int> xPos(0, 600);
-uniform_int_distribution<int> yPos(640, 680);
+uniform_int_distribution<int> yPos(640, 800);
 
 //degree of cooperation (stay in quarantine)
 uniform_int_distribution<int> cooperation(0, 9);
@@ -21,15 +21,18 @@ uniform_int_distribution<int> step(-20, 20);
 normal_distribution<double> normal(300, 100);
 uniform_int_distribution<int> cond(0, 1999);
 uniform_int_distribution<int> lurkDay(2, 14);
+uniform_int_distribution<int> disturbance(-5, 5); //随机扰动
 
 const int WINDOW = 600;
 extern double moveWill; //should be average + noise
-extern int healthy, exposed, infected, dead, population;
+extern int day, vaccineReverseCnt, medicineReverseCnt;
+extern int healthy, exposed, infected, dead, population, quarantine;
 extern double deathRate, broadRate;
 extern int threshold;
 extern int hospitalResponse, bedTotal, bedConsumption;
 extern int money, moneyPerPerson, costPerBedPerDay;
-extern int mask, medicalStuff, maskConsumptionMedical, maskConsumptionOrdinary;
+extern int mask, medicalStuff, maskConsumptionMedical, maskConsumptionOrdinary, maskProduction;
+extern bool quarantineCommandOn, medicineLock;
 extern Person pool[2000];
 
 //判断坐标是否超出边界
@@ -45,7 +48,8 @@ void _Move(int *arr, int flag)
 	{
 		return;
 	}
-	int dx, dy;
+
+	int dx = 0, dy = 0;
 	
 	do
 	{
@@ -55,20 +59,12 @@ void _Move(int *arr, int flag)
 
 	*arr += dx;
 	*(arr + 1) += dy;
-	/* if (*arr > 590)
-	{
-		*arr -= 2 * dx;
-	}
-	if (*(arr + 1) > 590)
-	{
-		*arr -= 2 * dy;
-	} */
 	return;
 }
 
 void InitPerson()
 {
-	int _x, _y;
+	int _x = 0, _y = 0;
 
 	for (int i = 0; i < 2000; i++)
 	{
@@ -79,23 +75,14 @@ void InitPerson()
 			_y = lround(normal(e));
 		} while (Check(_x, _y));
 
-		if (_x > WINDOW)
-		{
-			_x = WINDOW - 5;
-		}
-
-		if (_y > WINDOW)
-		{
-			_y = WINDOW - 5;
-		}
-
-		Person p = { {_x, _y}, 0, 0.05, 0, lurkDay(e), 0, 0, 0, 0, 0, 10, _Move };
+		Person p = { {_x, _y}, 0, 0.2, 0, lurkDay(e), 0, 0, 0, 0, 0, 10 + disturbance(e), _Move }; //PARAMETER: deathRate, recoverThreshold
 		pool[i] = p;
 	}
 
 	//initialize infected and exposed people
 	int initCount;
 	initCount = infected;
+
 	while (initCount--)
 	{
 		int index = cond(e);
@@ -110,6 +97,7 @@ void InitPerson()
 	}
 
 	initCount = exposed;
+
 	while (initCount--)
 	{
 		int index = cond(e);
@@ -205,6 +193,7 @@ void UpdateInHospital(Person *person)
 			if (person->hospitalReceptionCnt >= person->outOfHospitalThreshold) //康复出院
 			{
 				bedConsumption--;
+				quarantine--;
 				person->quarantine = 0;
 				person->condition = 0;
 				person->inHospital = 0;
@@ -244,6 +233,7 @@ void UpdateDeathAndRecovery(Person *person)
 				if (person->quarantine)
 				{
 					person->quarantine = 0; 
+					quarantine--;
 				}
 			}
 		}
@@ -261,7 +251,9 @@ void UpdateDeathAndRecovery(Person *person)
 			else
 			{
 				person->condition = 0;
+				person->inHospital = 0;
 				person->quarantine = 0;
+				quarantine--;
 				healthy++;
 				infected--;
 			}
@@ -289,6 +281,7 @@ void HospitalReception(Person *p)
 		}
 
 		bedConsumption++;
+		quarantine++;
 		p->quarantine = 1;
 		p->inHospital = 1;
 		p->deathRate /= 5; //PARAMETER
@@ -298,16 +291,40 @@ void HospitalReception(Person *p)
 //update condition for a new day
 void NewDay()
 {
+	day++;
+	vaccineReverseCnt--;
+
+	if (!medicineLock)
+	{
+		medicineReverseCnt--;
+		if (!medicineReverseCnt)
+		{
+			medicineLock = true;
+		}
+	}
+
+	if (mask < medicalStuff + population - dead) //缺失值 equals to # not wearing masks -> broadRate == 0.8 for these people (n) and remains the same for others 
+	{
+		int shortage = medicalStuff + population - dead - mask;
+		broadRate = (shortage * 0.8 + mask * broadRate) / (medicalStuff + population - dead);
+		if (broadRate > 0.8)
+		{
+			broadRate = 0.8;
+		}
+	}
+
+	int tmp = 0, flag = 0;
 	for (auto &person : pool)
 	{
-		int tmp = person.condition;
+		tmp = person.condition;
 		if (tmp == 3)
 		{
 			continue;
 		}
 		else
 		{
-			int flag = person.condition == 3 || person.quarantine == 1;
+			person.deathRate /= medicineLock ? 5 : 1;
+			flag = person.condition == 3 || person.quarantine == 1;
 			person.Move(person.position, flag);
 			if (tmp == 1)
 			{
@@ -317,42 +334,50 @@ void NewDay()
 			{
 				UpdateInfected(&person);
 				HospitalReception(&person);
+				Quarantine(quarantineCommandOn, &person);
 				UpdateDeathAndRecovery(&person);
-				UpdateInHospital(&person);
+				//UpdateInHospital(&person);
 			}
 		}
 	}
-	money += (healthy + exposed) * moneyPerPerson;
+	money += (population - dead - quarantine) * moneyPerPerson; //隔离的人不带来经济效益
 	money -= bedTotal * costPerBedPerDay;
 	mask -= medicalStuff * maskConsumptionMedical;
 	mask -= (population - dead) * maskConsumptionOrdinary;
+	mask += (population - dead - quarantine) * maskProduction;
+	Contact();
 }
 
-void StayInQuarantine()
+void Quarantine(bool commandOn, Person *person)
 {
-	int flag;
-	for (auto &p : pool)
+	if (!commandOn) //解除隔离
 	{
-		if (p.condition == 2 && !p.inHospital) //infected but not recepted into hospital
+
+		if (person->quarantine && !person->inHospital)
+		{
+			person->quarantine = 0;
+			quarantine--;
+		}
+	}
+	else
+	{
+		int flag = 0;
+		
+		if (person->quarantine)
+		{
+			return;
+		}
+
+		if (!person->inHospital) //infected but not recepted into hospital
 		{
 			flag = cooperation(e);
 			//90% of these people will stay in quarantine under the "quarantine" command
 			//PARAMETER
 			if (flag < 9)
 			{
-				p.quarantine = 1;
+				person->quarantine = 1;
+				quarantine++;
 			}
-		}
-
-		//放入隔离区
-		if (!p.quarantine)
-		{
-			return;
-		}
-		else
-		{
-			p.position[0] = xPos(e);
-			p.position[1] = yPos(e);
 		}
 	}
 }

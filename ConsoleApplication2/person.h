@@ -5,7 +5,6 @@ typedef struct
 {
 	int position[2]; //(x, y)
 	int condition;   //0: healthy, 1: exposed, 2: infected 3: dead
-	//int age;
 	double deathRate; //ËÀÍöÂÊ
 	int lurkDayCnt;   //Ç±·üÌìÊı
 	int lurkThreshold;
@@ -22,7 +21,7 @@ bool Check(int x, int y);
 void _Move(int *arr, int flag);
 void InitPerson();
 void Contact();
-void StayInQuarantine();
+void Quarantine(bool commandOn, Person *person);
 void UpdateLurk(Person *person);
 void UpdateInHospital(Person *person);
 void UpdateInfected(Person *person);

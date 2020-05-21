@@ -5,8 +5,10 @@
 #include "graph.h"
 #include "person.h"
 using namespace std;
-extern int day, healthy, exposed, infected, dead, bedTotal, bedConsumption, money, mask, population;
+extern int day, healthy, exposed, infected, dead, bedTotal, bedConsumption, money, mask, population, quarantine;
 extern Person pool[2000];
+extern bool medicineLock;
+extern int vaccineReverseCnt, medicineReverseCnt;
 
 void Draw()
 {
@@ -58,6 +60,10 @@ void PrintText()
 	char numberOfBed[10] = { '\0' };
 	char moneyLeft[10] = { '\0' };
 	char maskLeft[10] = { '\0' };
+	char numberOfQuarantine[10] = { '\0' };
+	char vaccineDay[10] = { '\0' };
+	char medicineDay[10] = { '\0' };
+
 	char outputTotalDay[35] = "Day ";
 	char outputHealthy[20] = "# Healthy: ";
 	char outputExposed[20] = "# Exposed: ";
@@ -66,6 +72,9 @@ void PrintText()
 	char outputBed[30] = "# Hospital Bed: ";
 	char outputMoney[30] = "# Money Left: ";
 	char outputMask[30] = "# Mask Left: ";
+	char outputQuarantine[30] = "# Quarantine: ";
+	char outputVaccine[50] = "# Days required for vaccine: ";
+	char outputMedicine[50] = "# Days required for medicine ";
 
 	_itoa(day, daystr, 10);
 	_itoa(healthy, numberOfHealthy, 10);
@@ -75,6 +84,9 @@ void PrintText()
 	_itoa(bedTotal - bedConsumption, numberOfBed, 10);
 	_itoa(money, moneyLeft, 10);
 	_itoa(mask, maskLeft, 10);
+	_itoa(quarantine, numberOfQuarantine, 10);
+	_itoa(vaccineReverseCnt, vaccineDay, 10);
+	_itoa(medicineReverseCnt, medicineDay, 10);
 
 	strcat(outputTotalDay, daystr);
 	strcat(outputHealthy, numberOfHealthy);
@@ -84,6 +96,9 @@ void PrintText()
 	strcat(outputBed, numberOfBed);
 	strcat(outputMoney, moneyLeft);
 	strcat(outputMask, maskLeft);
+	strcat(outputQuarantine, numberOfQuarantine);
+	strcat(outputVaccine, vaccineDay);
+	strcat(outputMedicine, medicineDay);
 
 	setcolor(WHITE);
 	setbkcolor(TRANSPARENT);
@@ -95,6 +110,13 @@ void PrintText()
 	outtextxy(610, 110, outputBed);
 	outtextxy(610, 130, outputMoney);
 	outtextxy(610, 150, outputMask);
+	outtextxy(610, 170, outputQuarantine);
+	outtextxy(610, 190, outputVaccine);
+	if (medicineLock)
+	{
+		setcolor(GREEN);
+	}
+	outtextxy(610, 210, outputMedicine);
 }
 
 void FinalDisplay()
@@ -134,5 +156,5 @@ void DrawHospital()
 void DrawQuarantineZone()
 {
 	setcolor(WHITE);
-	rectangle(0, 640, 600, 700);
+	rectangle(0, 640, 600, 800);
 }

@@ -9,13 +9,14 @@
 #include "graph.h"
 using namespace std;
 
-double moveWill = 1; //PARAMETER
+double moveWill = 1; //PARAMETER //NOTE: 无论如何输入command, moveWill cannot be zero!!!
 int day = 0;
 int population = 2000;
 int healthy = 1990; 
 int exposed = 5; //潜伏期
 int infected = 5; //出现症状
 int dead = 0;
+int quarantine = 0;
 
 int hospitalResponse = 5; //PARAMETER
 int bedTotal = 50;
@@ -27,23 +28,27 @@ int threshold = 5; //PARAMETER
 int money = 100000;//PARAMETER
 int moneyPerPerson = 2; //PARAMETER
 int costPerBedPerDay = 10; //PARAMETER
-int medicalStuff = 200;
-int maskConsumptionMedical = 2;
-int maskConsumptionOrdinary = 0;
-int mask = 200000;
+int medicalStuff = 200; //PARAMETER
+int maskConsumptionMedical = 2; //PARAMETER
+int maskConsumptionOrdinary = 0; //PARAMETER
+int maskProduction = 4; //PARAMETER
+int mask = 10000; //PARAMETER
+int vaccineReverseCnt = 210; //PARAMETER
+int medicineReverseCnt = 120; //PARAMETER
+bool quarantineCommandOn = false;
+bool medicineLock = false; //whethe the medicine has been developed
+
 Person pool[2000];
 
 bool Over();
 void InitParam();
 
-
 int main()
 {
 	int c, flag = 0xff;
-	initgraph(800, 800, 0);
+	initgraph(850, 850, 0);
 	setrendermode(RENDER_MANUAL); 
 	//GameOfLife();
-	//Sleep(300);
 
 	while (flag)
 	{
@@ -52,6 +57,7 @@ int main()
 		InitPerson();
 		cleardevice();
 		PrintPerson();
+		PrintText();
  		getch();
 
 		while (Over())
@@ -66,9 +72,7 @@ int main()
 				}
 				flushkey();
 			}
-			day++;
 			NewDay();
-			Contact();
 			Draw();
 			Sleep(300);
 		}
@@ -84,13 +88,12 @@ int main()
 
 bool Over()
 {
-	if ((infected + dead) >= population * 0.7)
+	if ((dead) >= population * 0.5)
 	{
 		return false;
 	}
-	else
+	else if (!vaccineReverseCnt || (!exposed && !infected))//疫苗研发 或 没有潜伏和感染人群
 	{
-		//判断win
 		return true;
 	}
 }
@@ -116,5 +119,11 @@ void InitParam()
 	medicalStuff = 200;
 	maskConsumptionMedical = 2;
 	maskConsumptionOrdinary = 0;
-	mask = 200000;
+	maskProduction = 4;
+	mask = 10000;
+	quarantineCommandOn = false;
+	quarantine = 0;
+	vaccineReverseCnt = 210;
+	medicineReverseCnt = 120;
+	medicineLock = false;
 }

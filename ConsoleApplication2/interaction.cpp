@@ -2,34 +2,32 @@
 #include<string.h>
 #include<stdlib.h>
 #include<ctype.h>
+#include<math.h>
 #include<sys_edit.h>
 #include"interaction.h"
 #include"higiene.h"
 #include"person.h"
+//TODO: build & research + sum
+//use vector to store the data
 
-const int commandCnt = 10;
-char build[] = "build", quarantine[] = "quarantine", work[] = "work", research[] = "research",
-quit[] = "quit", mask[] = "mask", distance[] = "distance", counterMask[] = "rm mask",
+const int commandCnt = 12;
+char build[] = "build", quarantine[] = "quarantine", work[] = "work", counterWork[] = "rm work", research[] = "research",
+quit[] = "quit", mask[] = "mask", distance[] = "distance", counterMask[] = "rm mask", counterQuarantine[] = "rm quarantine",
 newgame[] = "new game", exitgame[] = "exit game";
-char *commandList[10] = {build, quarantine, work, research, quit, mask, distance, counterMask, newgame, exitgame};
+char *commandList[12] = { build, quarantine, work, counterWork, research, quit, mask, distance, counterMask, counterQuarantine, newgame, exitgame };
 const int buffsize = 100;
 
 //make sure these commands are only executed once
-bool maskFlag = false, distanceFlag = false, quarantineFlag = false, workFlag = false, hospitalFlag = false;
+bool maskFlag = false, distanceFlag = false, quarantineFlag = false, workFlag = true, hospitalFlag = false, researchFlag = false;
 
 extern double broadRate, moveWill;
-extern int money, costPerBed, moneyPerPerson, maskConsumptionOrdinary;
+extern int money, costPerBed, moneyPerPerson, maskConsumptionOrdinary, maskProduction;
+extern int vaccineReverseCnt, medicineReverseCnt;
+extern bool quarantineCommandOn, medicineLock;
 
 int Min(int a, int b)
 {
 	return a < b ? a : b;
-}
-
-void Swap(char &a, char &b)
-{
-	char tmp = a;
-	a = b;
-	b = tmp;
 }
 
 //最小编辑距离，处理用户拼写错误
@@ -104,20 +102,19 @@ bool Text(char *s, int &len)
 int Console()
 {
 	sys_edit box;
-	box.create(true); //multiple line
-	/* edit box parameter */
-	box.move(610, 170);    //position
+	box.create(true); 
+	box.move(610, 300);    //position
 	box.size(170, 120);    //size
 	box.setbgcolor(BLACK); //background color
 	box.setcolor(WHITE);   //text color
 	box.setfont(16, 0, "Fira Code");
-	box.visable(true);
+	box.visable(true); 
 	box.setfocus(); //光标闪烁
 
 	bool flagPress = false; //标记是否按下
 	bool flagDigit;
 	char buff[100] = { '\0' };
-	int buffLength = 0, height = 0;
+	int buffLength = 0, height = 0, i;
 	for (; is_run(); delay_fps(60))
 	{
 		if (keystate(key_enter)) //检测到按下回车键就获取输入内容
@@ -127,16 +124,19 @@ int Console()
 				try
 				{
 					box.gettext(buffsize, buff); //获取输入框内容，保存在buff中
-
-					if (buff[0] < 0) 
+					
+					for (i = 0; i < 98; i++)
 					{
-						throw false;
+						if (buff[i] < 0) //detect Mandarine input 
+						{
+							throw false;
+						}
 					}
-
+					
 					buffLength = strlen(buff);
 					flagDigit = Text(buff, buffLength);
 
-					if (!buffLength)
+					if (!buffLength) //detect blank input
 					{
 						throw 0;
 					}
@@ -157,15 +157,27 @@ int Console()
 							else if (!strcmp(buff, "quarantine"))
 							{
 								Sleep(1500);
-								if (!quarantineFlag)
+								if (!quarantineCommandOn)
 								{
-									StayInQuarantine();
-									quarantineFlag = true;
+									quarantineCommandOn = true;
 									box.settext("Infected people start to be kept in quarantine.");
 								}
 								else
 								{
 									box.settext("Invalid command. Infected people are already kept in quarantine.");
+								}
+							}
+							else if (!strcmp(buff, "rm quarantine"))
+							{
+								Sleep(1500);
+								if (quarantineCommandOn)
+								{
+									quarantineCommandOn = false;
+									box.settext("The quarantine measure is withdrawn.");
+								}
+								else
+								{
+									box.settext("Invalid command. The quarantine measure is not initiated.");
 								}
 							}
 							else if (!strcmp(buff, "work")) //back to work
@@ -175,11 +187,28 @@ int Console()
 								{
 									moneyPerPerson *= 2; //PARAMETER
 									moveWill += 0.2; //PARAMETER
+									workFlag = true;
 									box.settext("People are getting back to work");
 								}
 								else
 								{
 									box.settext("Invalid command. People are already back to work.");
+								}
+							}
+							else if (!strcmp(buff, "rm work"))
+							{
+								Sleep(1500);
+								if (workFlag)
+								{
+									moneyPerPerson /= 2;//PARAMETER
+									moveWill -= 0.2;//PARAMETER
+									maskProduction = 1; //PARAMETER
+									workFlag = false;
+									box.settext("People stop working.");
+								}
+								else
+								{
+									box.settext("Invalid command. People are not working.");
 								}
 							}
 							else if (!strcmp(buff, "mask")) //wear mask
@@ -218,7 +247,7 @@ int Console()
 								if (!distanceFlag)
 								{
 									distanceFlag = true;
-									moveWill /= 5; //PARAMETER
+									moveWill /= 3; //PARAMETER
 									box.settext("People begin to carry out social distancing.");
 								}
 								else
@@ -230,15 +259,17 @@ int Console()
 							{
 								//not sure if the user can fund research for more than once
 								Sleep(1500);
-								if (money > 5000)
-								{
-									money -= 5000; //PARAMETER
-									box.settext("Research teams are racing to develop medication and vaccine.");
-								}
-								else
-								{
-									box.settext("Research appropriation failed. Not enough money.");
-								}
+								researchFlag = true;
+								box.settext("Input the amount of funding: ");
+								//if (money > 5000)
+								//{
+								//	money -= 5000; //PARAMETER
+								//	box.settext("Research teams are racing to develop medication and vaccine.");
+								//}
+								//else
+								//{
+								//	box.settext("Research appropriation failed. Not enough money.");
+								//}
 							}
 							else if (!strcmp(buff, "new game")) //重新开始游戏
 							{
@@ -255,7 +286,7 @@ int Console()
 								box.destory();
 								return 0;
 							}
-							else
+							else 
 							{
 								char *tmp = buff;
 								EditDistance(buff,&tmp);
@@ -266,17 +297,18 @@ int Console()
 								box.settext(warning);
 							} //spelling mistake
 						}
-					else
+					else //number
 						{
 							Sleep(1500);
-							if (hospitalFlag)
+							if (hospitalFlag) //之前输入了build
 							{
 								int num = atoi(buff);
-								bool hospitalFlag = num * costPerBed > money ? false : true;
+								bool constructionFlag = num * costPerBed < money; //判断是否有足够金额
 
-								if (hospitalFlag)
+								if (constructionFlag)
 								{
 									InitHospital(num);
+									money -= (num * costPerBed);
 									box.settext("Hospital construction successful.");
 								}
 								else
@@ -289,13 +321,45 @@ int Console()
 							{
 								box.settext("Undefined command. Please input \"build\" first if you want to add hospital beds.");
 							}
+
+							if (researchFlag)
+							{
+								int num = atoi(buff);
+								bool fundFlag = num < money;
+
+								if (fundFlag)
+								{
+									money -= num;
+									if (!medicineLock)
+									{
+										int tailorMedicine = lround(sqrt(num)) / 2;
+										int tailorVaccine = lround(sqrt(num)) / 2;
+										vaccineReverseCnt -= tailorVaccine;
+										medicineReverseCnt -= tailorMedicine;
+										box.settext("Medicine and vaccine development has been accelerated.");
+									}
+									else
+									{
+										int tailorVaccine = lround(sqrt(num));
+										vaccineReverseCnt -= tailorVaccine;
+										box.settext("Medicine has been developed. Vaccine development has been accelerated.");
+									}
+									
+								}
+								else
+								{
+									box.settext("Research development acceleration failed. Not enough money.");
+								}
+
+								researchFlag = false;
+							}
 						}
 					Sleep(1500);
 					box.settext("");
 				}
 				catch (int)
 				{
-					box.settext("Undefined command.");
+					box.settext("Blank command.");
 					Sleep(1000);
 					box.settext("");
 				}
