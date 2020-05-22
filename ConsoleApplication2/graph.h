@@ -3,8 +3,9 @@
 
 void Draw();
 void PrintPerson();
-void FinalDisplay();
+void FinalDisplay(int);
 void PrintText();
+void CommandLine();
 void DrawHospital();
 void DrawQuarantineZone();
 

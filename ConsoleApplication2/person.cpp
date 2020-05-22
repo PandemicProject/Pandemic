@@ -297,6 +297,10 @@ void NewDay()
 
 	if (mask < medicalStuff + population - dead) //ȱʧֵ equals to # not wearing masks -> broadRate == 0.8 for these people (n) and remains the same for others 
 	{
+		if (mask < 0)
+		{
+			mask = 0;
+		}
 		int shortage = medicalStuff + population - dead - mask;
 		broadRate = (shortage * 0.8 + mask * broadRate) / (medicalStuff + population - dead);
 		if (broadRate > 0.8)

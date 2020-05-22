@@ -103,17 +103,17 @@ int Console()
 {
 	sys_edit box;
 	box.create(true); 
-	box.move(610, 300);    //position
-	box.size(170, 120);    //size
+	box.move(610, 560);    //position
+	box.size(300, 90);    //size
 	box.setbgcolor(BLACK); //background color
 	box.setcolor(WHITE);   //text color
-	box.setfont(16, 0, "Fira Code");
+	box.setfont(16, 0, "Times New Roman");
 	box.visable(true); 
 	box.setfocus(); //光标闪烁
 
 	bool flagPress = false; //标记是否按下
-	bool flagDigit;
-	char buff[100] = { '\0' };
+	bool flagDigit = false; //标记是否为数字
+	char buff[100] = { '\0' }; //缓存区
 	int buffLength = 0, height = 0, i;
 	for (; is_run(); delay_fps(60))
 	{
@@ -127,7 +127,7 @@ int Console()
 					
 					for (i = 0; i < 98; i++)
 					{
-						if (buff[i] < 0) //detect Mandarine input 
+						if (buff[i] < 0) //中文输入
 						{
 							throw false;
 						}
@@ -136,7 +136,7 @@ int Console()
 					buffLength = strlen(buff);
 					flagDigit = Text(buff, buffLength);
 
-					if (!buffLength) //detect blank input
+					if (!buffLength) //空白输入
 					{
 						throw 0;
 					}

@@ -39,13 +39,13 @@ bool medicineLock = false; //whethe the medicine has been developed
 
 Person pool[2000];
 
-bool Over();
+int Over();
 void InitParam();
 
 int main()
 {
 	int c, flag = 0xff;
-	initgraph(850, 850, 0);
+	initgraph(950, 800, 0);
 	setrendermode(RENDER_MANUAL); 
 	//GameOfLife();
 
@@ -57,15 +57,17 @@ int main()
 		cleardevice();
 		PrintPerson();
 		PrintText();
+		CommandLine();
+		DrawHospital();
  		getch();
 
-		while (Over())
+		while (!Over())
 		{
 			if (kbhit())
 			{
 				c = getch();
 				flag = Console();
-				if (flag != 2)
+				if (flag != 2) //2: continue game, 1: new game,  0: exit game
 				{
 					break;
 				}
@@ -77,7 +79,7 @@ int main()
 		}
 		if (flag == 2)
 		{
-			FinalDisplay();
+			FinalDisplay(Over());
 		}
 	}
 	getch();
@@ -85,15 +87,19 @@ int main()
 	return 0;
 }
 
-bool Over()
+int Over()
 {
-	if (dead >= population * 0.5)
+	if (dead >= population * 0.5 || money < -500) //lose
 	{
-		return false;
+		return 1;
 	}
-	else if (!vaccineReverseCnt || (!exposed && !infected))//疫苗研发 或 没有潜伏和感染人群
+	else if (!vaccineReverseCnt || (!exposed && !infected))//疫苗研发 或 没有潜伏和感染人群 win
 	{
-		return true;
+		return 2;
+	}
+	else
+	{
+		return 0; //游戏继续
 	}
 }
 

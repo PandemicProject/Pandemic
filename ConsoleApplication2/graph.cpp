@@ -15,8 +15,9 @@ void Draw()
 	cleardevice();
 	PrintPerson();
 	DrawHospital();
-	DrawQuarantineZone();
+	//DrawQuarantineZone();
 	PrintText();
+	CommandLine();
 }
 
 void PrintPerson()
@@ -65,16 +66,16 @@ void PrintText()
 	char medicineDay[10] = { '\0' };
 
 	char outputTotalDay[35] = "Day ";
-	char outputHealthy[20] = "# Healthy: ";
-	char outputExposed[20] = "# Exposed: ";
-	char outputInfected[20] = "# Infected: ";
-	char outputDead[20] = "# Dead: ";
-	char outputBed[30] = "# Hospital Bed: ";
-	char outputMoney[30] = "# Money Left: ";
-	char outputMask[30] = "# Mask Left: ";
-	char outputQuarantine[30] = "# Quarantine: ";
-	char outputVaccine[50] = "# Days required for vaccine: ";
-	char outputMedicine[50] = "# Days required for medicine ";
+	char outputHealthy[20] = "Healthy: ";
+	char outputExposed[20] = "Exposed: ";
+	char outputInfected[20] = "Infected: ";
+	char outputDead[20] = "Dead: ";
+	char outputBed[30] = "Vacant Hospital Bed: ";
+	char outputMoney[30] = "Money Left: ";
+	char outputMask[30] = "Mask Left: ";
+	char outputQuarantine[30] = "Quarantine: ";
+	char outputVaccine[50] = "Days required for vaccine: ";
+	char outputMedicine[50] = "Days required for medicine ";
 
 	_itoa(day, daystr, 10);
 	_itoa(healthy, numberOfHealthy, 10);
@@ -102,16 +103,32 @@ void PrintText()
 
 	setcolor(WHITE);
 	setbkcolor(TRANSPARENT);
+	setfont(-15, 0, "Times New Roman");
 	outtextxy(610, 10, outputTotalDay);
 	outtextxy(610, 30, outputHealthy);
 	outtextxy(610, 50, outputExposed);
 	outtextxy(610, 70, outputInfected);
 	outtextxy(610, 90, outputDead);
-	outtextxy(610, 110, outputBed);
-	outtextxy(610, 130, outputMoney);
-	outtextxy(610, 150, outputMask);
-	outtextxy(610, 170, outputQuarantine);
+	outtextxy(610, 110, outputQuarantine);
+	outtextxy(610, 130, outputBed);
+	if (!money)
+	{
+		setcolor(RED);
+	}
+	outtextxy(610, 150, outputMoney);
+	setcolor(WHITE);
+	if (!mask)
+	{
+		setcolor(RED);
+	}
+	outtextxy(610, 170, outputMask);
+	setcolor(WHITE);
+	if (!vaccineReverseCnt)
+	{
+		setcolor(GREEN);
+	}
 	outtextxy(610, 190, outputVaccine);
+	setcolor(WHITE);
 	if (medicineLock)
 	{
 		setcolor(GREEN);
@@ -119,7 +136,29 @@ void PrintText()
 	outtextxy(610, 210, outputMedicine);
 }
 
-void FinalDisplay()
+// quit,counterQuarantine, newgame, exitgame };
+
+void CommandLine()
+{
+	setfont(-15, 0, "Times New Roman");
+	outtextxy(610, 250, "COMMAND LIST: ");
+	outtextxy(610, 270, "build [number]: build a hospital with [number] beds");
+	outtextxy(610, 290, "research [number]: spend [number] coins to accelerate");
+	outtextxy(727, 310, "medicine and vaccine development");
+	outtextxy(610, 330, "work: ask people to go back to work");
+	outtextxy(610, 350, "rm work: ask people not to go to work");
+	outtextxy(610, 370, "distance: carry out social distancing");
+	outtextxy(610, 390, "mask: ask people to wear masks");
+	outtextxy(610, 410, "rm mask: ask people not to wear masks");
+	outtextxy(610, 430, "quarantine: keep infected people in quarantine");
+	outtextxy(610, 450, "rm quarantine: withdraw the quarantine measure");
+	outtextxy(610, 470, "quit: stop inputting commands");
+	outtextxy(610, 490, "new game: start a new game");
+	outtextxy(610, 510, "exit game: quit playing");
+	outtextxy(610, 530, "Press ANY key to start inputting commands");
+}
+
+void FinalDisplay(int x)
 {
 	Sleep(1000);
 	cleardevice();
@@ -130,27 +169,33 @@ void FinalDisplay()
 	strcat(output, tmp);
 	strcat(output, _tmp);
 	setcolor(WHITE);
-	outtextxy(370, 300, "OVER");
+	if (x == 1)
+	{
+		outtextxy(370, 300, "OVER");
+	}
+	else if (x == 2)
+	{
+		outtextxy(370, 300, "YOU WIN!");
+	}
 	outtextxy(370, 320, output);
-	outtextxy(370, 340, "Press any key to continue.");
+	outtextxy(370, 340, "Press any key to exit the game.");
 }
 
 void DrawHospital()
 {
 	setcolor(WHITE);
 	setfillcolor(WHITE);
-	rectangle(0, 610, 600, 630);
+	rectangle(0, 620, 600, 650);
 	int length;
 	double ratio = (double)bedConsumption / bedTotal;
 	if (ratio > 1)
 	{
-		length = 600;
-	}
+		length = 600;	}
 	else
 	{
 		length = lround(600 * ratio);
 	}
-	bar(0, 610, length, 630);
+	bar(0, 620, length, 650);
 }
 
 void DrawQuarantineZone()
