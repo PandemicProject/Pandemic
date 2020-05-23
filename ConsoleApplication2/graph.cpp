@@ -179,6 +179,7 @@ void FinalDisplay(int x)
 	}
 	outtextxy(370, 320, output);
 	outtextxy(370, 340, "Press any key to exit the game.");
+	Sleep(1000);
 }
 
 void DrawHospital()

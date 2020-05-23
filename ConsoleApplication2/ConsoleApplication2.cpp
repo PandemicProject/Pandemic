@@ -44,7 +44,7 @@ void InitParam();
 
 int main()
 {
-	int c, flag = 0xff;
+	int c, flag = 2;
 	initgraph(950, 800, 0);
 	setrendermode(RENDER_MANUAL); 
 	//GameOfLife();
