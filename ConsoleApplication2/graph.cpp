@@ -143,19 +143,20 @@ void CommandLine()
 	setfont(-15, 0, "Times New Roman");
 	outtextxy(610, 250, "COMMAND LIST: ");
 	outtextxy(610, 270, "build [number]: build a hospital with [number] beds");
-	outtextxy(610, 290, "research [number]: spend [number] coins to accelerate");
-	outtextxy(727, 310, "medicine and vaccine development");
-	outtextxy(610, 330, "work: ask people to go back to work");
-	outtextxy(610, 350, "rm work: ask people not to go to work");
-	outtextxy(610, 370, "distance: carry out social distancing");
-	outtextxy(610, 390, "mask: ask people to wear masks");
-	outtextxy(610, 410, "rm mask: ask people not to wear masks");
-	outtextxy(610, 430, "quarantine: keep infected people in quarantine");
-	outtextxy(610, 450, "rm quarantine: withdraw the quarantine measure");
-	outtextxy(610, 470, "quit: stop inputting commands");
-	outtextxy(610, 490, "new game: start a new game");
-	outtextxy(610, 510, "exit game: quit playing");
-	outtextxy(610, 530, "Press ANY key to start inputting commands");
+	outtextxy(610, 290, "research [number1] [number2]: spend [number1] and ");
+	outtextxy(665, 310, "[number2] coins to accelerate medicine and ");
+	outtextxy(665, 330, "vaccine development respectively");
+	outtextxy(610, 350, "work: ask people to go back to work");
+	outtextxy(610, 370, "rm work: ask people not to go to work");
+	outtextxy(610, 390, "distance: carry out social distancing");
+	outtextxy(610, 410, "mask: ask people to wear masks");
+	outtextxy(610, 430, "rm mask: ask people not to wear masks");
+	outtextxy(610, 450, "quarantine: keep infected people in quarantine");
+	outtextxy(610, 470, "rm quarantine: withdraw the quarantine measure");
+	outtextxy(610, 490, "quit: stop inputting commands");
+	outtextxy(610, 510, "new: start a new game");
+	outtextxy(610, 530, "exit: quit the game");
+	outtextxy(610, 560, "Press ANY key to start inputting commands");
 }
 
 void FinalDisplay(int x)

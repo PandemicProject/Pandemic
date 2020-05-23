@@ -63,6 +63,7 @@ int main()
 
 		while (!Over())
 		{
+			NewDay();
 			if (kbhit())
 			{
 				c = getch();
@@ -73,7 +74,6 @@ int main()
 				}
 				flushkey();
 			}
-			NewDay();
 			Draw();
 			Sleep(300);
 		}

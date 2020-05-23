@@ -351,6 +351,7 @@ void NewDay()
 	mask -= medicalStuff * maskConsumptionMedical;
 	mask -= (population - dead) * maskConsumptionOrdinary;
 	mask += (population - dead - quarantine) * maskProduction;
+
 	Contact();
 }
 

@@ -1,6 +1,2 @@
-﻿  interaction.cpp
-c:\users\geyir\source\repos\consoleapplication2\consoleapplication2\interaction.cpp(181): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\geyir\source\repos\consoleapplication2\consoleapplication2\interaction.cpp(155): warning C4101: “j”: 未引用的局部变量
-c:\users\geyir\source\repos\consoleapplication2\consoleapplication2\interaction.cpp(203): warning C4018: “<”: 有符号/无符号不匹配
-c:\users\geyir\source\repos\consoleapplication2\consoleapplication2\interaction.cpp(887): warning C4715: “Console”: 不是所有的控件路径都返回值
+﻿  graph.cpp
   ConsoleApplication2.vcxproj -> C:\Users\geyir\source\repos\ConsoleApplication2\Debug\ConsoleApplication2.exe

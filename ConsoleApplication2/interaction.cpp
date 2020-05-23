@@ -7,8 +7,6 @@
 #include"interaction.h"
 #include"higiene.h"
 #include"person.h"
-//TODO: build & research + sum
-//use vector to store the data
 
 const int commandCnt = 12;
 char build[] = "build", quarantine[] = "quarantine", work[] = "work", counterWork[] = "rm work", research[] = "research",
@@ -18,7 +16,7 @@ char *commandList[12] = { build, quarantine, work, counterWork, research, quit, 
 const int buffsize = 100;
 
 //make sure these commands are only executed once
-bool maskFlag = false, distanceFlag = false, quarantineFlag = false, workFlag = true, hospitalFlag = false, researchFlag = false;
+bool maskFlag = false, distanceFlag = false, quarantineFlag = false, workFlag = true;
 
 extern double broadRate, moveWill;
 extern int money, costPerBed, moneyPerPerson, maskConsumptionOrdinary, maskProduction;
@@ -30,7 +28,7 @@ int Min(int a, int b)
 	return a < b ? a : b;
 }
 
-//最小编辑距离，处理用户拼写错误
+//处理用户拼写错误
 void EditDistance(char *input, char**re)
 {
 	int dp[15][15];
@@ -148,7 +146,6 @@ bool IsDigit(char *s)
 	return true;
 }
 
-//command
 int Console()
 {
 	sys_edit box;
@@ -159,10 +156,9 @@ int Console()
 	box.setcolor(WHITE);   //text color
 	box.setfont(16, 0, "Times New Roman");
 	box.visable(true); 
-	box.setfocus(); //光标闪烁
+	box.setfocus(); //光标
 
 	bool flagPress = false; //标记是否按下
-	bool flagDigit = false; //标记是否为数字
 	char buff[100] = { '\0' }; //缓存区
 	char command[5][15] = { '\0' }; //命令
 	int buffLength = 0, height = 0, i, cnt = 0;
@@ -218,16 +214,24 @@ int Console()
 							{
 								throw false;
 							}
-							else if (command[1][0] == '0')
+
+							if (strlen(command[1]) > 1 && command[1][0] == '0')
 							{
 								throw 0;
 							}
-							else if (!IsDigit(command[1]))
+
+							if (!IsDigit(command[1]))
 							{
 								throw false;
 							}
 
 							int num = atoi(command[1]);
+
+							if (num < 0)
+							{
+								throw false;
+							}
+
 							bool constructionFlag = num * costPerBed < money; //判断是否有足够金额
 							Sleep(1500);
 							if (constructionFlag)
@@ -260,29 +264,44 @@ int Console()
 					{
 						try
 						{
-							if (cnt != 2)
+							if (cnt != 3)
 							{
 								throw false;
 							}
-							else if (command[1][0] == '0')
+							//首位为0
+							if ((strlen(command[1]) > 1 && command[1][0] == '0') || (strlen(command[2]) > 1 && command[2][0] == '0'))
 							{
 								throw 0;
 							}
-							else if (!IsDigit(command[1]))
+							//非数字
+							if (!IsDigit(command[1]) || !IsDigit(command[2]))
 							{
 								throw false;
 							}
 
-							int num = atoi(buff);
-							bool fundFlag = num < money;
+							int num1 = atoi(command[1]); //medicine
+							int num2 = atoi(command[2]); //vaccine
+
+							if (num1 < 0 || num2 < 0)
+							{
+								throw false;
+							}
+
+							if (medicineLock && num1 > 0)
+							{
+								throw 1.0;
+							}
+
+							int total = num1 + num2;
+							bool fundFlag = total < money;
 							Sleep(1500);
 							if (fundFlag)
 							{
-								money -= num;
+								money -= total;
 								if (!medicineLock)
 								{
-									int tailorMedicine = lround(sqrt(num)) / 2;
-									int tailorVaccine = lround(sqrt(num)) / 2;
+									int tailorMedicine = lround(sqrt(num1));
+									int tailorVaccine = lround(sqrt(num2));
 									vaccineReverseCnt -= tailorVaccine;
 									medicineReverseCnt -= tailorMedicine;
 									if (vaccineReverseCnt < 0)
@@ -298,8 +317,12 @@ int Console()
 								}
 								else
 								{
-									int tailorVaccine = lround(sqrt(num));
+									int tailorVaccine = lround(sqrt(num2));
 									vaccineReverseCnt -= tailorVaccine;
+									if (vaccineReverseCnt < 0)
+									{
+										vaccineReverseCnt = 0;
+									}
 									box.settext("Medicine has been developed. Vaccine development has been accelerated.");
 								}
 
@@ -317,11 +340,15 @@ int Console()
 						catch (bool)
 						{
 							Sleep(1000);
-							box.settext("Invalid input. Format: research [number]. e.g. research 3000.");
+							box.settext("Invalid input. Format: research [number] [number]. e.g. research 3000 0.");
 						}
 						catch (char)
 						{
 							box.settext("Research development acceleration failed. Not enough money.");
+						}
+						catch (double)
+						{
+							box.settext("Medicine has been developed. No need for funding.");
 						}
 					}
 					else if (!strcmp(command[0], "work"))
@@ -545,9 +572,7 @@ int Console()
 							maskFlag = false;
 							distanceFlag = false;
 							quarantineFlag = false;
-							workFlag = false; //change to true
-							hospitalFlag = true; //change to false
-							researchFlag = false;
+							workFlag = true; 
 							box.destory();
 							return 1;
 						}
