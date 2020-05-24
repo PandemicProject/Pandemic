@@ -64,17 +64,17 @@ void PrintText()
 	char vaccineDay[10] = { '\0' };
 	char medicineDay[10] = { '\0' };
 
-	char outputTotalDay[35] = "Day ";
-	char outputHealthy[20] = "Healthy: ";
-	char outputExposed[20] = "Exposed: ";
-	char outputInfected[20] = "Infected: ";
-	char outputDead[20] = "Dead: ";
-	char outputBed[30] = "Vacant Hospital Bed: ";
-	char outputMoney[30] = "Money Left: ";
-	char outputMask[30] = "Mask Left: ";
+	char outputTotalDay[20] = "Day ";
+	char outputHealthy[25] = "Healthy: ";
+	char outputExposed[25] = "Exposed: ";
+	char outputInfected[25] = "Infected: ";
+	char outputDead[25] = "Dead: ";
+	char outputBed[35] = "Vacant Hospital Bed: ";
+	char outputMoney[35] = "Money Left: ";
+	char outputMask[35] = "Mask Left: ";
 	char outputQuarantine[30] = "Quarantine: ";
-	char outputVaccine[50] = "Days required for vaccine: ";
-	char outputMedicine[50] = "Days required for medicine ";
+	char outputVaccine[40] = "Days required for vaccine: ";
+	char outputMedicine[40] = "Days required for medicine ";
 
 	_itoa(day, daystr, 10);
 	_itoa(healthy, numberOfHealthy, 10);
@@ -164,11 +164,12 @@ void FinalDisplay(int x)
 	cleardevice();
 	float deathRate = (float)dead / population;
 	deathRate *= 100;
-	char tmp[5], _tmp[2] = "%", output[20] = "Death Rate: ";
+	char tmp[10], _tmp[2] = "%", output[30] = "Death Rate: ";
 	sprintf(tmp, "%.2f", deathRate);
 	strcat(output, tmp);
 	strcat(output, _tmp);
 	setcolor(WHITE);
+	setfont(-30, 0, "Times New Roman");
 	if (x == 1)
 	{
 		outtextxy(370, 300, "OVER");
@@ -177,9 +178,9 @@ void FinalDisplay(int x)
 	{
 		outtextxy(370, 300, "YOU WIN!");
 	}
-	outtextxy(370, 320, output);
-	outtextxy(370, 340, "Press any key to exit the game.");
-	Sleep(1000);
+	setfont(-20, 0, "Times New Roman");
+	outtextxy(370, 350, output);
+	Sleep(2000);
 }
 
 void DrawHospital()

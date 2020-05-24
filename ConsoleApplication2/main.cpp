@@ -48,9 +48,10 @@ Person pool[2000];
 int main()
 {
 	int c, flag = 2;
-	initgraph(950, 800, 0);
+	initgraph(950, 700, 0);
 	setrendermode(RENDER_MANUAL); 
-	//GameOfLife();
+	GameOfLife();
+	getch();
 
 	while (flag)
 	{
@@ -81,7 +82,6 @@ int main()
 			FinalDisplay(Over());
 		}
 	}
-	getch();
 	closegraph();
 	return 0;
 }

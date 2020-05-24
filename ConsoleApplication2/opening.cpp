@@ -1,9 +1,11 @@
 #include <graphics.h>
 #include "opening.h"
 
-const int square = 800;
-const int life = 80;
-int cell[80][80] = { 0 };
+const int square = 600;
+const int marginWidth = 175;
+const int marginHeight = 50;
+const int life = 60;
+int cell[60][60] = { 0 };
 
 void Initialize()
 {
@@ -24,7 +26,7 @@ void Initialize()
 void Update()
 {
 	int neighbour = 0, i, j;
-	int tmp[80][80];
+	int tmp[60][60];
 	for (i = 0; i < life - 1; i++)
 	{
 		for (j = 0; j < life - 1; j++)
@@ -66,14 +68,13 @@ void DisplayGame()
 			{
 				setcolor(WHITE);
 				setfillcolor(WHITE);
-				bar(i * 10, j * 10, (i + 1) * 10, (j + 1) * 10);
 			}
 			else
 			{
 				setcolor(BLACK);
 				setfillcolor(BLACK);
-				bar(i * 10, j * 10, (i + 1) * 10, (j + 1) * 10);
 			}
+			bar(marginWidth + i * 10, marginHeight + j * 10, marginWidth + (i + 1) * 10, marginHeight + (j + 1) * 10);
 		}
 	}
 }
@@ -106,8 +107,10 @@ void GameOfLife()
 		}
 	}
 	cleardevice();
-	xyprintf(0, 0, "Against \n Pandemic"); //NEED REFINEMENT
-	xyprintf(0, 15, "Press any key to enter the game");
+	setfont(-30, 0, "Times New Roman");
+	outtextxy(350, 300, "Against \n Pandemic"); //NEED REFINEMENT
+	setfont(-20, 0, "Times New Roman");
+	outtextxy(340, 350, "Press any key to enter the game");
 	Sleep(500);
 	delimage(des);
 	delimage(src);
