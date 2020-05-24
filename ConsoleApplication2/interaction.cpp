@@ -5,21 +5,19 @@
 #include<math.h>
 #include<sys_edit.h>
 #include"interaction.h"
-#include"higiene.h"
-#include"person.h"
 
 const int commandCnt = 12;
 char build[] = "build", quarantine[] = "quarantine", work[] = "work", counterWork[] = "rm work", research[] = "research",
 quit[] = "quit", mask[] = "mask", distance[] = "distance", counterMask[] = "rm mask", counterQuarantine[] = "rm quarantine",
 newgame[] = "new", exitgame[] = "exit";
 char *commandList[12] = { build, quarantine, work, counterWork, research, quit, mask, distance, counterMask, counterQuarantine, newgame, exitgame };
-const int buffsize = 100;
+const int buffsize = 120;
 
 //make sure these commands are only executed once
 bool maskFlag = false, distanceFlag = false, quarantineFlag = false, workFlag = true;
 
 extern double broadRate, moveWill;
-extern int money, costPerBed, moneyPerPerson, maskConsumptionOrdinary, maskProduction;
+extern int money, bedTotal, costPerBed, moneyPerPerson, maskConsumptionOrdinary, maskProduction;
 extern int vaccineReverseCnt, medicineReverseCnt;
 extern bool quarantineCommandOn, medicineLock;
 
@@ -159,7 +157,7 @@ int Console()
 	box.setfocus(); //光标
 
 	bool flagPress = false; //标记是否按下
-	char buff[100] = { '\0' }; //缓存区
+	char buff[120] = { '\0' }; //缓存区
 	char command[5][15] = { '\0' }; //命令
 	int buffLength = 0, height = 0, i, cnt = 0;
 	for (; is_run(); delay_fps(60))
@@ -179,7 +177,7 @@ int Console()
 						}
 					}
 
-					char input[100] = { '\0' };
+					char input[120] = { '\0' };
 					DelSpace(buff, input);
 					buffLength = strlen(input);
 
@@ -202,7 +200,7 @@ int Console()
 						}
 						catch (bool)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("Invalid command. No parameter needed.");
 						}
 					}
@@ -215,15 +213,16 @@ int Console()
 								throw false;
 							}
 
+							if (!IsDigit(command[1]))
+							{
+								throw false;
+							}
+
 							if (strlen(command[1]) > 1 && command[1][0] == '0')
 							{
 								throw 0;
 							}
 
-							if (!IsDigit(command[1]))
-							{
-								throw false;
-							}
 
 							int num = atoi(command[1]);
 
@@ -233,10 +232,10 @@ int Console()
 							}
 
 							bool constructionFlag = num * costPerBed < money; //判断是否有足够金额
-							Sleep(1500);
+							Sleep(1000);
 							if (constructionFlag)
 							{
-								InitHospital(num);
+								bedTotal += num;
 								money -= (num * costPerBed);
 								box.settext("Hospital construction successful.");
 							}
@@ -247,12 +246,12 @@ int Console()
 						}
 						catch (int)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("The number begins with a zero.");
 						}
 						catch (bool)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("Invalid input. Format: build [number]. e.g. build 100");
 						}
 						catch (char)
@@ -268,16 +267,17 @@ int Console()
 							{
 								throw false;
 							}
-							//首位为0
-							if ((strlen(command[1]) > 1 && command[1][0] == '0') || (strlen(command[2]) > 1 && command[2][0] == '0'))
-							{
-								throw 0;
-							}
 							//非数字
 							if (!IsDigit(command[1]) || !IsDigit(command[2]))
 							{
 								throw false;
 							}
+							//首位为0
+							if ((strlen(command[1]) > 1 && command[1][0] == '0') || (strlen(command[2]) > 1 && command[2][0] == '0'))
+							{
+								throw 0;
+							}
+							
 
 							int num1 = atoi(command[1]); //medicine
 							int num2 = atoi(command[2]); //vaccine
@@ -294,14 +294,14 @@ int Console()
 
 							int total = num1 + num2;
 							bool fundFlag = total < money;
-							Sleep(1500);
+							Sleep(1000);
 							if (fundFlag)
 							{
 								money -= total;
 								if (!medicineLock)
 								{
-									int tailorMedicine = lround(sqrt(num1));
-									int tailorVaccine = lround(sqrt(num2));
+									int tailorMedicine = lround(sqrt(num1 / 2));
+									int tailorVaccine = lround(sqrt(num2) / 2);
 									vaccineReverseCnt -= tailorVaccine;
 									medicineReverseCnt -= tailorMedicine;
 									if (vaccineReverseCnt < 0)
@@ -317,7 +317,7 @@ int Console()
 								}
 								else
 								{
-									int tailorVaccine = lround(sqrt(num2));
+									int tailorVaccine = lround(sqrt(num2) / 2);
 									vaccineReverseCnt -= tailorVaccine;
 									if (vaccineReverseCnt < 0)
 									{
@@ -325,7 +325,6 @@ int Console()
 									}
 									box.settext("Medicine has been developed. Vaccine development has been accelerated.");
 								}
-
 							}
 							else
 							{
@@ -334,12 +333,12 @@ int Console()
 						}
 						catch (int)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("The number begins with a zero.");
 						}
 						catch (bool)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("Invalid input. Format: research [number] [number]. e.g. research 3000 0.");
 						}
 						catch (char)
@@ -360,7 +359,7 @@ int Console()
 								throw false;
 							}
 
-							Sleep(1500);
+							Sleep(1000);
 							if (!workFlag)
 							{
 								moneyPerPerson *= 2; //PARAMETER
@@ -379,7 +378,7 @@ int Console()
 						}
 						catch (bool)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("Invalid command. No parameter needed.");
 						}
 						catch (int)
@@ -396,7 +395,7 @@ int Console()
 								throw false;
 							}
 
-							Sleep(1500);
+							Sleep(1000);
 							if (!quarantineCommandOn)
 							{
 								quarantineCommandOn = true;
@@ -409,7 +408,7 @@ int Console()
 						}
 						catch (bool)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("Invalid command. No parameter needed.");
 						}
 						catch (int)
@@ -426,7 +425,7 @@ int Console()
 								throw false;
 							}
 
-							Sleep(1500);
+							Sleep(1000);
 							if (!maskFlag)
 							{
 								maskFlag = true;
@@ -441,7 +440,7 @@ int Console()
 						}
 						catch (bool)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("Invalid command. No parameter needed.");
 						}
 						catch (int)
@@ -458,7 +457,7 @@ int Console()
 								throw false;
 							}
 
-							Sleep(1500);
+							Sleep(1000);
 							if (!distanceFlag)
 							{
 								distanceFlag = true;
@@ -472,7 +471,7 @@ int Console()
 						}
 						catch (bool)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("Invalid command. No parameter needed.");
 						}
 						catch (int)
@@ -491,7 +490,7 @@ int Console()
 
 							if (!strcmp(command[1], "work"))
 							{
-								Sleep(1500);
+								Sleep(1000);
 								if (workFlag)
 								{
 									moneyPerPerson = 1;//PARAMETER
@@ -511,7 +510,7 @@ int Console()
 							}
 							else if (!strcmp(command[1], "mask"))
 							{
-								Sleep(1500);
+								Sleep(1000);
 								if (!maskFlag)
 								{
 									throw 'f';
@@ -544,7 +543,7 @@ int Console()
 						}
 						catch (bool)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("\"rm\" needs to be followed by the command you want to remove.");
 						}
 						catch (int)
@@ -578,7 +577,7 @@ int Console()
 						}
 						catch (bool)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("Invalid restarting command.");
 						}
 					}
@@ -596,7 +595,7 @@ int Console()
 						}
 						catch (bool)
 						{
-							Sleep(1000);
+							Sleep(500);
 							box.settext("Invalid exiting command.");
 						}
 					}
@@ -609,6 +608,7 @@ int Console()
 						strcat(warning, "\"?");
 						Sleep(500);
 						box.settext(warning);
+						Sleep(500);
 					}
 				}
 				catch (bool)
@@ -622,7 +622,7 @@ int Console()
 					box.settext("Blank input.");
 				}
 				flagPress = 1;
-				Sleep(1500);
+				Sleep(1000);
 				box.settext("");
 			}
 			else

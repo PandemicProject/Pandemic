@@ -2,6 +2,7 @@
 #include <random>
 #include <graphics.h>
 using namespace std;
+
 default_random_engine e;
 
 //position in quarantine zone
@@ -24,16 +25,11 @@ uniform_int_distribution<int> lurkDay(2, 14);
 uniform_int_distribution<int> disturbance(-5, 5); //随机扰动
 
 const int WINDOW = 600;
-bool flagLowerRate = false;
-extern double moveWill; //should be average + noise
-extern int day, vaccineReverseCnt, medicineReverseCnt;
-extern int healthy, exposed, infected, dead, population, quarantine;
-extern double deathRate, broadRate;
-extern int threshold;
-extern int hospitalResponse, bedTotal, bedConsumption;
-extern int money, moneyPerPerson, costPerBedPerDay;
-extern int mask, medicalStuff, maskConsumptionMedical, maskConsumptionOrdinary, maskProduction;
-extern bool quarantineCommandOn, medicineLock;
+
+extern int population, healthy, exposed, infected, dead, quarantine, threshold;
+extern int bedTotal, bedConsumption, hospitalResponse;
+extern double moveWill, broadRate;
+extern bool quarantineCommandOn;
 extern Person pool[2000];
 
 //判断坐标是否超出边界
@@ -278,81 +274,6 @@ void HospitalReception(Person *p)
 		p->inHospital = 1;
 		p->deathRate /= 5; //PARAMETER
 	}
-}
-
-//update condition for a new day
-void NewDay()
-{
-	day++;
-	vaccineReverseCnt--;
-
-	if (!medicineLock)
-	{
-		medicineReverseCnt--;
-		if (!medicineReverseCnt)
-		{
-			medicineLock = true;
-		}
-	}
-
-	if (mask < medicalStuff + population - dead) //缺失值 equals to # not wearing masks -> broadRate == 0.8 for these people (n) and remains the same for others 
-	{
-		if (mask < 0)
-		{
-			mask = 0;
-		}
-		int shortage = medicalStuff + population - dead - mask;
-		broadRate = (shortage * 0.8 + mask * broadRate) / (medicalStuff + population - dead);
-		if (broadRate > 0.8)
-		{
-			broadRate = 0.8;
-		}
-	}
-
-	int tmp = 0;
-	bool flag = false;
-
-	for (auto &person : pool)
-	{
-		tmp = person.condition;
-
-		if (tmp == 3)
-		{
-			continue;
-		}
-		else
-		{
-			if (medicineLock && !flagLowerRate)
-			{
-				flagLowerRate = true;
-				person.deathRate /= 5;
-			}
-			flag = person.quarantine == 1;
-			person.Move(person.position, flag);
-
-			if (tmp == 1)
-			{
-				UpdateLurk(&person); 
-			}
-			
-			if (tmp == 2)
-			{
-				UpdateInfected(&person);
-				UpdateInHospital(&person);
-				HospitalReception(&person);
-				Quarantine(quarantineCommandOn, &person);
-				UpdateDeathAndRecovery(&person);
-			}
-		}
-	}
-
-	money += (population - dead - quarantine) * moneyPerPerson; //隔离的人不带来经济效益
-	money -= bedTotal * costPerBedPerDay;
-	mask -= medicalStuff * maskConsumptionMedical;
-	mask -= (population - dead) * maskConsumptionOrdinary;
-	mask += (population - dead - quarantine) * maskProduction;
-
-	Contact();
 }
 
 void Quarantine(bool commandOn, Person *person)

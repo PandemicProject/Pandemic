@@ -4,19 +4,18 @@
 #include <stdlib.h>
 #include "graph.h"
 #include "person.h"
-using namespace std;
-extern int day, healthy, exposed, infected, dead, bedTotal, bedConsumption, money, mask, population, quarantine;
+
+extern int healthy, exposed, infected, dead, bedTotal, bedConsumption, money, mask, population, quarantine;
 extern Person pool[2000];
 extern bool medicineLock;
-extern int vaccineReverseCnt, medicineReverseCnt;
+extern int day, vaccineReverseCnt, medicineReverseCnt;
 
 void Draw()
 {
 	cleardevice();
 	PrintPerson();
-	DrawHospital();
-	//DrawQuarantineZone();
 	PrintText();
+	DrawHospital();
 	CommandLine();
 }
 
@@ -156,7 +155,7 @@ void CommandLine()
 	outtextxy(610, 490, "quit: stop inputting commands");
 	outtextxy(610, 510, "new: start a new game");
 	outtextxy(610, 530, "exit: quit the game");
-	outtextxy(610, 560, "Press ANY key to start inputting commands");
+	outtextxy(610, 560, "Press ANY key to input commands");
 }
 
 void FinalDisplay(int x)
@@ -192,16 +191,11 @@ void DrawHospital()
 	double ratio = (double)bedConsumption / bedTotal;
 	if (ratio > 1)
 	{
-		length = 600;	}
+		length = 600;	
+	}
 	else
 	{
 		length = lround(600 * ratio);
 	}
 	bar(0, 620, length, 650);
-}
-
-void DrawQuarantineZone()
-{
-	setcolor(WHITE);
-	rectangle(0, 640, 600, 800);
 }

@@ -15,12 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ConsoleApplication2.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="game.cpp">
-      <Filter>头文件</Filter>
-    </ClCompile>
     <ClCompile Include="person.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
@@ -30,15 +24,18 @@
     <ClCompile Include="interaction.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
-    <ClCompile Include="hygiene.cpp">
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="opening.cpp">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="game.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="interaction.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="game.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="person.h">
@@ -47,7 +44,10 @@
     <ClInclude Include="graph.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="higiene.h">
+    <ClInclude Include="opening.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="game.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,10 +1,8 @@
 #ifndef GAME_H
 #define GAME_H
 
-void Initialize();
-void DisplayGame();
-void Update();
-void GameOfLife();
+void InitParam();
+int Over();
+void NewDay();
 
 #endif
-

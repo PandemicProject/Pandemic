@@ -17,7 +17,7 @@ typedef struct
 	void(*Move)(int *, int);
 } Person;
 
-bool Check(int x, int y);
+bool Check(int, int);
 void _Move(int *arr, int flag);
 void InitPerson();
 void Contact();
@@ -27,6 +27,6 @@ void UpdateInHospital(Person *person);
 void UpdateInfected(Person *person);
 void UpdateDeathAndRecovery(Person *person);
 void HospitalReception(Person *person);
-void NewDay();
+
 #endif
 

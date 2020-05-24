@@ -151,17 +151,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ConsoleApplication2.cpp" />
     <ClCompile Include="game.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="opening.cpp" />
     <ClCompile Include="graph.cpp" />
-    <ClCompile Include="hygiene.cpp" />
     <ClCompile Include="interaction.cpp" />
     <ClCompile Include="person.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h" />
+    <ClInclude Include="opening.h" />
     <ClInclude Include="graph.h" />
-    <ClInclude Include="higiene.h" />
     <ClInclude Include="interaction.h" />
     <ClInclude Include="person.h" />
   </ItemGroup>

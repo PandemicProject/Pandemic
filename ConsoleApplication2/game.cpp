@@ -1,114 +1,131 @@
-#include <graphics.h>
-#include "game.h"
+#include"game.h"
+#include"person.h"
 
-const int square = 800;
-const int life = 80;
-int cell[80][80] = { 0 };
+extern int population, healthy, exposed, infected, dead, quarantine, medicalStuff, threshold;
+extern int money, costPerBed, moneyPerPerson, costPerBedPerDay;
+extern int mask, maskConsumptionMedical, maskConsumptionOrdinary, maskProduction;
+extern int bedTotal, bedConsumption, hospitalResponse;
+extern int day, vaccineReverseCnt, medicineReverseCnt;
+extern double moveWill, broadRate;
+extern bool quarantineCommandOn, medicineLock, flagLowerRate;
+extern Person pool[2000];
 
-void Initialize()
+int Over()
 {
-	int i, j;
-	for (i = 0; i < life; i++)
+	if (dead + infected * 0.6 >= population * 0.5 || money < -500) //lose
 	{
-		cell[i][0] = 1;
-		cell[i][life - 1] = 1;
-
-		for (j = 0; j < life; j++)
-		{
-			cell[0][j] = 1;
-			cell[life - 1][j] = 1;
-		}
+		return 1;
+	}
+	else if (!vaccineReverseCnt || (!exposed && !infected))//疫苗研发 或 没有潜伏和感染人群 win
+	{
+		return 2;
+	}
+	else
+	{
+		return 0; //游戏继续
 	}
 }
 
-void Update()
+void InitParam()
 {
-	int neighbour = 0, i, j;
-	int tmp[80][80];
-	for (i = 0; i < life - 1; i++)
-	{
-		for (j = 0; j < life - 1; j++)
-		{
-			neighbour = cell[i - 1][j - 1] + cell[i - 1][j] + cell[i - 1][j + 1] + cell[i][j - 1] + cell[i][j + 1] + cell[i + 1][j - 1] + cell[i + 1][j] + cell[i + 1][j + 1];
-			if (neighbour == 3)
-			{
-				tmp[i][j] = 1;
-			}
-			else if (neighbour == 2)
-			{
-				tmp[i][j] = cell[i][j];
-			}
-			else
-			{
-				tmp[i][j] = 0;
-			}
-		}
-	}
-
-	for (i = 1; i < life - 1; i++)
-	{
-		for (j = 1; j < life - 1; j++)
-		{
-			cell[i][j] = tmp[i][j];
-		}
-	}
+	moveWill = 1;
+	broadRate = 0.8;
+	day = 0;
+	healthy = 1990;
+	exposed = 5;
+	infected = 5;
+	dead = 0;
+	quarantine = 0;
+	medicalStuff = 200;
+	hospitalResponse = 5;
+	bedTotal = 50;
+	bedConsumption = 0;
+	costPerBed = 40;
+	threshold = 5;
+	money = 100000;
+	moneyPerPerson = 2;
+	costPerBedPerDay = 10;
+	maskConsumptionMedical = 2;
+	maskConsumptionOrdinary = 0;
+	maskProduction = 2;
+	mask = 10000;
+	vaccineReverseCnt = 210;
+	medicineReverseCnt = 120;
+	quarantineCommandOn = false;
+	medicineLock = false;
+	flagLowerRate = false;
 }
 
-void DisplayGame()
+void NewDay()
 {
-	cleardevice();
-	int i, j;
-	for (i = 0; i < life; i++)
+	day++;
+	vaccineReverseCnt--;
+
+	if (!medicineLock)
 	{
-		for (j = 0; j < life; j++)
+		medicineReverseCnt--;
+		if (!medicineReverseCnt)
 		{
-			if (cell[i][j] == 1)
+			medicineLock = true;
+		}
+	}
+
+	if (mask < medicalStuff + population - dead)
+	{
+		if (mask < 0)
+		{
+			mask = 0;
+		}
+		int shortage = medicalStuff + population - dead - mask;
+		broadRate = (shortage * 0.8 + mask * broadRate) / (medicalStuff + population - dead);
+		if (broadRate > 0.8)
+		{
+			broadRate = 0.8;
+		}
+	}
+
+	int tmp = 0;
+	bool flag = false;
+
+	for (auto &person : pool)
+	{
+		tmp = person.condition;
+
+		if (tmp == 3)
+		{
+			continue;
+		}
+		else
+		{
+			if (medicineLock && !flagLowerRate)
 			{
-				setcolor(WHITE);
-				setfillcolor(WHITE);
-				bar(i * 10, j * 10, (i + 1) * 10, (j + 1) * 10);
+				flagLowerRate = true;
+				person.deathRate /= 5;
 			}
-			else
+			flag = person.quarantine == 1;
+			person.Move(person.position, flag);
+
+			if (tmp == 1)
 			{
-				setcolor(BLACK);
-				setfillcolor(BLACK);
-				bar(i * 10, j * 10, (i + 1) * 10, (j + 1) * 10);
+				UpdateLurk(&person);
+			}
+
+			if (tmp == 2)
+			{
+				UpdateInfected(&person);
+				UpdateInHospital(&person);
+				HospitalReception(&person);
+				Quarantine(quarantineCommandOn, &person);
+				UpdateDeathAndRecovery(&person);
 			}
 		}
 	}
-}
 
-void GameOfLife()
-{
-	int alpha = 0x00; //透明度
-	PIMAGE des = newimage();
-	PIMAGE src = newimage();
-	getimage(src, "pic2.png");
+	money += (population - dead - quarantine) * moneyPerPerson; //隔离的人不带来经济效益
+	money -= bedTotal * costPerBedPerDay;
+	mask -= medicalStuff * maskConsumptionMedical;
+	mask -= (population - dead) * maskConsumptionOrdinary;
+	mask += (population - dead - quarantine) * maskProduction;
 
-	Initialize();
-	DisplayGame();
-	Sleep(500);
-
-	for (; is_run(); delay_fps(60))
-	{
-		Update();
-		DisplayGame();
-		if (kbhit())
-		{
-			char flag = getch();                          //don't know why not adding this leads to termination of the program
-			for (; alpha <= 0x8a; delay_fps(60), alpha++) //渐暗
-			{
-				getimage(des, 0, 0, getwidth(), getheight());
-				putimage_alphablend(des, src, 0, 0, alpha, 0, 0);
-				putimage(0, 0, des);
-			}
-			break;
-		}
-	}
-	cleardevice();
-	xyprintf(0, 0, "Against \n Pandemic"); //NEED REFINEMENT
-	xyprintf(0, 15, "Press any key to enter the game");
-	Sleep(500);
-	delimage(des);
-	delimage(src);
+	Contact();
 }
