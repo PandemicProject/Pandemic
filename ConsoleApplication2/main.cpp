@@ -23,7 +23,7 @@ int quarantine = 0;
 int medicalStuff = 200; //PARAMETER
 int threshold = 5; //PARAMETER
 
-int money = 100000;//PARAMETER
+int money = 90000;//PARAMETER
 int costPerBed = 40; //PARAMETER
 int costPerBedPerDay = 10; //PARAMETER
 int moneyPerPerson = 2; //PARAMETER

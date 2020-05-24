@@ -226,11 +226,6 @@ int Console()
 
 							int num = atoi(command[1]);
 
-							if (num < 0)
-							{
-								throw false;
-							}
-
 							bool constructionFlag = num * costPerBed < money; //ÅÐ¶ÏÊÇ·ñÓÐ×ã¹»½ð¶î
 							Sleep(1000);
 							if (constructionFlag)
@@ -282,11 +277,6 @@ int Console()
 							int num1 = atoi(command[1]); //medicine
 							int num2 = atoi(command[2]); //vaccine
 
-							if (num1 < 0 || num2 < 0)
-							{
-								throw false;
-							}
-
 							if (medicineLock && num1 > 0)
 							{
 								throw 1.0;
@@ -304,11 +294,11 @@ int Console()
 									int tailorVaccine = lround(sqrt(num2) / 2);
 									vaccineReverseCnt -= tailorVaccine;
 									medicineReverseCnt -= tailorMedicine;
-									if (vaccineReverseCnt < 0)
+									if (vaccineReverseCnt <= 0)
 									{
 										vaccineReverseCnt = 0;
 									}
-									if (medicineReverseCnt < 0)
+									if (medicineReverseCnt <= 0)
 									{
 										medicineReverseCnt = 0;
 										medicineLock = true;
@@ -319,7 +309,7 @@ int Console()
 								{
 									int tailorVaccine = lround(sqrt(num2) / 2);
 									vaccineReverseCnt -= tailorVaccine;
-									if (vaccineReverseCnt < 0)
+									if (vaccineReverseCnt <= 0)
 									{
 										vaccineReverseCnt = 0;
 									}
@@ -340,6 +330,7 @@ int Console()
 						{
 							Sleep(500);
 							box.settext("Invalid input. Format: research [number] [number]. e.g. research 3000 0.");
+							Sleep(500);
 						}
 						catch (char)
 						{

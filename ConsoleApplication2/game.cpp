@@ -42,12 +42,12 @@ void InitParam()
 	bedConsumption = 0;
 	costPerBed = 40;
 	threshold = 5;
-	money = 100000;
+	money = 90000;
 	moneyPerPerson = 2;
 	costPerBedPerDay = 10;
 	maskConsumptionMedical = 2;
 	maskConsumptionOrdinary = 0;
-	maskProduction = 2;
+	maskProduction = 1;
 	mask = 10000;
 	vaccineReverseCnt = 210;
 	medicineReverseCnt = 120;
@@ -60,29 +60,6 @@ void NewDay()
 {
 	day++;
 	vaccineReverseCnt--;
-
-	if (!medicineLock)
-	{
-		medicineReverseCnt--;
-		if (!medicineReverseCnt)
-		{
-			medicineLock = true;
-		}
-	}
-
-	if (mask < medicalStuff + population - dead)
-	{
-		if (mask < 0)
-		{
-			mask = 0;
-		}
-		int shortage = medicalStuff + population - dead - mask;
-		broadRate = (shortage * 0.8 + mask * broadRate) / (medicalStuff + population - dead);
-		if (broadRate > 0.8)
-		{
-			broadRate = 0.8;
-		}
-	}
 
 	int tmp = 0;
 	bool flag = false;
@@ -126,6 +103,28 @@ void NewDay()
 	mask -= medicalStuff * maskConsumptionMedical;
 	mask -= (population - dead) * maskConsumptionOrdinary;
 	mask += (population - dead - quarantine) * maskProduction;
+	if (!medicineLock)
+	{
+		medicineReverseCnt--;
+		if (!medicineReverseCnt)
+		{
+			medicineLock = true;
+		}
+	}
+
+	if (mask < medicalStuff + population - dead)
+	{
+		if (mask <= 0)
+		{
+			mask = 0;
+		}
+		int shortage = medicalStuff + population - dead - mask;
+		broadRate = (shortage * 0.8 + mask * broadRate) / (medicalStuff + population - dead);
+		if (broadRate > 0.8)
+		{
+			broadRate = 0.8;
+		}
+	}
 
 	Contact();
 }
